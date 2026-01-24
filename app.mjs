@@ -6,8 +6,3 @@ export function App() {
 					<h1>Hello, World!</h1>
 				`;
 }
-
-render(
-    html`<${App} />`,
-    document.getElementById('app')
-);
