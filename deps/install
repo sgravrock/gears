@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+npm ci
+cp node_modules/preact/dist/preact.mjs ../vendor/
+cp node_modules/htm/dist/htm.mjs ../vendor/
+cp node_modules/htm/preact/index.mjs ../vendor/htm-preact.mjs
+echo "Copied dependencies to ../vendor"
