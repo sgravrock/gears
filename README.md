@@ -1,5 +1,7 @@
 # A bicycle gear ratio calculator
 
+Inspired by https://www.sheldonbrown.com/gear-calc.html
+
 ## Running locally
 
 Configure any web server to serve this directory. (Running `npx serve` is an
