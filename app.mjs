@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { useState, useId } from 'preact/hooks';
 
 export const config = {
 	wheels: [
@@ -24,32 +24,50 @@ export function BikeForm() {
 		gearInches = wheelSize * nChainringTeeth / nCogTeeth;
 	}
 
+	const wheelSizeId = useId();
+	const chainringId = useId();
+	const cogId = useId();
+
 	return html`<form>
-		<label>
-			Wheel size
-			<${Select} 
-				name="wheelSize"
-				options=${config.wheels}
-				optionKey="diameterIn"
-				selectedKey=${wheelSize}
-				onchange=${v => setWheelSize(v)}
-			/>
-		</label>
-		<label>
-			Chainring
-			<input name="chainringTeeth"
-				   value=${chainringTeeth} 
-				   onchange=${e => {
-					   debugger;
-					   return setChainringTeeth(e.target.value);
-				   }} />
-		</label>
-		<label>
-			Cog
-			<input name="cogTeeth"
-				   value=${cogTeeth}
-				   onchange=${e => setCogTeeth(e.target.value)} />
-		</label>
+		<table>
+			<tr>
+				<td><label for=${wheelSizeId}>Wheel size</label></td>
+				<td>
+					<${Select}
+						id=${wheelSizeId}
+						name="wheelSize"
+						options=${config.wheels}
+						optionKey="diameterIn"
+						selectedKey=${wheelSize}
+						onchange=${v => setWheelSize(v)}
+					/>
+				</td>
+			</tr>
+			<tr>
+				<td><label for=${chainringId}>Chainring</label></td>
+				<td>
+					<input 
+						id=${chainringId} 
+						name="chainringTeeth" 
+						value=${chainringTeeth} 
+						onchange=${e => setChainringTeeth(e.target.value)}
+						size="2"
+					/>
+				</td>
+			</tr>
+			<tr>
+				<td><label for=${cogId}>Cog</label></td>
+				<td>
+					<input
+						id=${cogId}
+						name="cogTeeth"							
+						value=${cogTeeth}
+						onchange=${e => setCogTeeth(e.target.value)}
+						size="2"
+					/>
+				</td>
+			</tr>
+		</table>
 		<div class="result">${gearInches && `${gearInches} inches`}</div>
 	</form>`;
 }
@@ -65,6 +83,7 @@ function Select(props) {
 
 	return html`
 		<select
+			id=${props.id}
 			name=${props.name}
 			onchange=${e => props.onchange(e.target.value)}
 		>
