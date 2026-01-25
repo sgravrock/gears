@@ -8,6 +8,32 @@ export const config = {
 	]
 }
 
+export function MultiBikeForm() {
+	const [lastKey, setLastKey] = useState(1);
+	const [keys, setKeys] = useState([lastKey]);
+
+	function add() {
+		const k = lastKey + 1;
+		setKeys([...keys, k]);
+		setLastKey(k);
+	}
+
+	function remove(keyToRemove) {
+		setKeys(keys.filter(key => key !== keyToRemove));
+	}
+
+	return html`
+		<div>
+			${keys.map(key => html`
+				<div key=${key}>
+					<${BikeForm}/>
+					<button onclick=${() => remove(key)}>Remove</button>
+				</div>
+			`)}
+			<button onclick=${add}>Add Bike</button>
+		</div>`;
+}
+
 export function BikeForm() {
 	const [wheelSize, setWheelSize] = useState(config.wheels[0].diameterIn);
 	const [chainringTeeth, setChainringTeeth] = useState();
@@ -93,5 +119,5 @@ function Select(props) {
 
 
 export function App() {
-    return html`<${BikeForm} />`;
+    return html`<${MultiBikeForm} />`;
 }
