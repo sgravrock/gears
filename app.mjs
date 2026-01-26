@@ -8,46 +8,64 @@ export const config = {
 	]
 }
 
+function newBkeWithId(id) {
+	return {id, wheelSize: config.wheels[0].diameterIn.toString()};
+}
+
 export function MultiBikeForm() {
 	const [lastKey, setLastKey] = useState(1);
-	const [keys, setKeys] = useState([lastKey]);
+	const [bikes, setBikes] = useState([newBkeWithId(lastKey)]);
 
 	function add() {
 		const k = lastKey + 1;
-		setKeys([...keys, k]);
 		setLastKey(k);
+		setBikes([...bikes, newBkeWithId(k)]);
 	}
 
-	function remove(keyToRemove) {
-		setKeys(keys.filter(key => key !== keyToRemove));
+	function replace(newBike, i) {
+		const result = [...bikes];
+		result[i] = newBike;
+		setBikes(result);
+	}
+
+	function remove(bike) {
+		setBikes(bikes.filter(b => b !== bike));
 	}
 
 	return html`
 		<div>
-			${keys.map(key => html`
-				<div key=${key}>
-					<${BikeForm}/>
-					<button onclick=${() => remove(key)}>Remove</button>
+			${bikes.map((b, i) => html`
+				<div key=${b.id}>
+					<${BikeForm} bike=${b} setBike=${nb => replace(nb, i)} />
+					<button onclick=${() => remove(b)}>Remove</button>
 				</div>
 			`)}
 			<button onclick=${add}>Add Bike</button>
 		</div>`;
 }
 
-export function BikeForm() {
-	const [wheelSize, setWheelSize] = useState(config.wheels[0].diameterIn);
-	const [chainringTeeth, setChainringTeeth] = useState();
-	const [cogTeeth, setCogTeeth] = useState();
-
+export function BikeForm(props) {
 	// TODO: better validation. This accepts decimal values.
-	let nChainringTeeth = parseInt(chainringTeeth, 10);
-	let nCogTeeth = parseInt(cogTeeth, 10);
+	let nChainringTeeth = parseInt(props.bike.chainringTeeth, 10);
+	let nCogTeeth = parseInt(props.bike.cogTeeth, 10);
 	let gearInches;
 
 	if (isNaN(nChainringTeeth) || isNaN(nCogTeeth)) {
 		gearInches = '';
 	} else {
-		gearInches = wheelSize * nChainringTeeth / nCogTeeth;
+		gearInches = props.bike.wheelSize * nChainringTeeth / nCogTeeth;
+	}
+
+	function setWheelSize(wheelSize) {
+		props.setBike({...props.bike, wheelSize});
+	}
+
+	function setChainringTeeth(chainringTeeth) {
+		props.setBike({...props.bike, chainringTeeth})
+	}
+
+	function setCogTeeth(cogTeeth) {
+		props.setBike({...props.bike, cogTeeth})
 	}
 
 	const wheelSizeId = useId();
@@ -64,8 +82,8 @@ export function BikeForm() {
 						name="wheelSize"
 						options=${config.wheels}
 						optionKey="diameterIn"
-						selectedKey=${wheelSize}
-						onchange=${v => setWheelSize(v)}
+						selectedKey=${props.bike.wheelSize}
+						onchange=${setWheelSize}
 					/>
 				</td>
 			</tr>
@@ -75,7 +93,7 @@ export function BikeForm() {
 					<input 
 						id=${chainringId} 
 						name="chainringTeeth" 
-						value=${chainringTeeth} 
+						value=${props.bike.chainringTeeth} 
 						onchange=${e => setChainringTeeth(e.target.value)}
 						size="2"
 					/>
@@ -87,7 +105,7 @@ export function BikeForm() {
 					<input
 						id=${cogId}
 						name="cogTeeth"							
-						value=${cogTeeth}
+						value=${props.bike.cogTeeth}
 						onchange=${e => setCogTeeth(e.target.value)}
 						size="2"
 					/>
