@@ -8,9 +8,8 @@ export const config = {
 	]
 };
 
-// All state is stored in the URL hash. This allows the user to share any
+// All state is stored in the query string. This allows the user to share any
 // configuration simply by copying the URL.
-// TODO: query string, not hash
 
 export function App() {
 	return html`
@@ -25,22 +24,22 @@ export function App() {
 }
 
 export function UrlBasedState(props) {
-	const [bikes, setBikes] = useState(bikesFromHash(props.location.hash));
+	const [bikes, setBikes] = useState(bikesFromQuery(props.location.search));
 	return props.children({
 		bikes,
 		setBikes: function(newBikes) {
 			setBikes(newBikes);
-			props.history.replaceState({}, '', hashFromBikes(newBikes));
+			props.history.replaceState({}, '', queryFromBikes(newBikes));
 		}
 	});
 }
 
-export function bikesFromHash(hash) {
+export function bikesFromQuery(queryString) {
 	const byId = {};
 	const paramToKey = {ws: 'wheelSize', cr: 'chainring', cg: 'cog'};
 
 	// TODO: error reporting
-	for (const [k, v] of new URLSearchParams(hash.substring(1))) {
+	for (const [k, v] of new URLSearchParams(queryString)) {
 		const m = k.match(/^(ws|cr|cg)([0-9]+)$/);
 
 		if (m) {
@@ -67,7 +66,7 @@ export function bikesFromHash(hash) {
 		.map(id => byId[id]);
 }
 
-export function hashFromBikes(bikes) {
+export function queryFromBikes(bikes) {
 	let params = [];
 
 	for (const b of bikes) {
@@ -78,7 +77,7 @@ export function hashFromBikes(bikes) {
 
 	// Omit params that haven't been set yet
 	params = params.filter(p => !!p[1]);
-	return '#' + new URLSearchParams(params).toString();
+	return '?' + new URLSearchParams(params).toString();
 }
 
 function newBkeWithId(id) {
