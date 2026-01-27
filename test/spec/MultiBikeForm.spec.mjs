@@ -1,19 +1,13 @@
-import {MultiBikeForm} from "../../app.mjs";
+import {config, MultiBikeForm} from "../../app.mjs";
 import { render } from 'preact';
+import { useState } from 'preact/hooks';
 import { html } from 'htm/preact';
 import { act } from 'preact/test-utils';
 
 describe('MultiBikeForm', function() {
-	it('initially shows one form', function() {
-		const root = document.createElement('div');
-		render(html`<${MultiBikeForm}/>`, root);
-
-		expect(root.querySelectorAll('form').length).toEqual(1);
-	});
-
 	it('allows forms to be added and removed', function() {
 		const root = document.createElement('div');
-		render(html`<${MultiBikeForm}/>`, root);
+		render(html`<${TestFormStateContainer}/>`, root);
 
 		act(function() {
 			findByText(root, 'button', 'Add Bike').click();
@@ -25,37 +19,43 @@ describe('MultiBikeForm', function() {
 		});
 		expect(root.querySelectorAll('form').length).toEqual(3);
 
-		changeField(root.querySelectorAll('[name=chainringTeeth]')[1], '24');
+		changeField(root.querySelectorAll('[name=chainring]')[1], '24');
 
 		act(function() {
 			findByText(root, 'button', 'Remove').click();
 		});
 
 		expect(root.querySelectorAll('form').length).toEqual(2);
-		expect(root.querySelectorAll('[name=chainringTeeth]')[0].value)
+		expect(root.querySelectorAll('[name=chainring]')[0].value)
 			.toEqual('24');
 	});
 
 	describe('An individual form', function() {
 		it('does not initially display a result', function() {
 			const root = document.createElement('div');
-			render(html`<${MultiBikeForm}/>`, root);
+			render(html`<${TestFormStateContainer}/>`, root);
 
 			expect(root.querySelector('.result').textContent).toEqual('');
 		});
 
 		it('displays gear inches when all inputs are valid', function() {
 			const root = document.createElement('div');
-			render(html`<${MultiBikeForm}/>`, root);
+			render(html`<${TestFormStateContainer}/>`, root);
 
 			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainringTeeth]'), '42');
-			changeField(root.querySelector('[name=cogTeeth]'), '24');
+			changeField(root.querySelector('[name=chainring]'), '42');
+			changeField(root.querySelector('[name=cog]'), '24');
 
 			expect(root.querySelector('.result').textContent)
 				.toEqual('43.5225 inches');
 		});
 	});
+
+	function TestFormStateContainer() {
+		const initialBikes = [{id: 1, wheelSize: config.wheels[0].diameterIn}];
+		const [bikes, setBikes] = useState(initialBikes);
+		return html`<${MultiBikeForm} bikes=${bikes} setBikes=${setBikes}/>`;
+	}
 
 	function findByText(root, selector, text) {
 		const candidates = root.querySelectorAll(selector);

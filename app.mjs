@@ -6,35 +6,104 @@ export const config = {
 		{label: '700c x 38mm', diameterIn: 27.32},
 		{label: '26 x 1.5"', diameterIn: 24.87},
 	]
+};
+
+// All state is stored in the URL hash. This allows the user to share any
+// configuration simply by copying the URL.
+// TODO: query string, not hash
+
+export function App() {
+	return html`
+		<${UrlBasedState} location=${window.location} history=${window.history}>
+			${({bikes, setBikes}) => {
+				return html`<${MultiBikeForm}
+					bikes=${bikes}
+					setBikes=${setBikes}
+				/>`;
+			}}
+		<//>`;
+}
+
+export function UrlBasedState(props) {
+	const [bikes, setBikes] = useState(bikesFromHash(props.location.hash));
+	return props.children({
+		bikes,
+		setBikes: function(newBikes) {
+			setBikes(newBikes);
+			props.history.replaceState({}, '', hashFromBikes(newBikes));
+		}
+	});
+}
+
+export function bikesFromHash(hash) {
+	const byId = {};
+	const paramToKey = {ws: 'wheelSize', cr: 'chainring', cg: 'cog'};
+
+	// TODO: error reporting
+	for (const [k, v] of new URLSearchParams(hash.substring(1))) {
+		const m = k.match(/^(ws|cr|cg)([0-9]+)$/);
+
+		if (m) {
+			const id = parseInt(m[2], 10);
+			const nv = parseFloat(v);
+
+			if (!isNaN(id) && !isNaN(nv)) {
+				if (!byId[id]) {
+					byId[id] = {id};
+				}
+
+				byId[id][paramToKey[m[1]]] = nv;
+			}
+		}
+	}
+
+	if (Object.keys(byId).length === 0) {
+		return [{id: 0, wheelSize: config.wheels[0].diameterIn}];
+	}
+
+	// Sort by ID
+	return Object.keys(byId)
+		.sort((a, b) => a[1] - b[1])
+		.map(id => byId[id]);
+}
+
+export function hashFromBikes(bikes) {
+	let params = [];
+
+	for (const b of bikes) {
+		params.push([`ws${b.id}`, b.wheelSize]);
+		params.push([`cr${b.id}`, b.chainring]);
+		params.push([`cg${b.id}`, b.cog]);
+	}
+
+	// Omit params that haven't been set yet
+	params = params.filter(p => !!p[1]);
+	return '#' + new URLSearchParams(params).toString();
 }
 
 function newBkeWithId(id) {
 	return {id, wheelSize: config.wheels[0].diameterIn.toString()};
 }
 
-export function MultiBikeForm() {
-	const [lastKey, setLastKey] = useState(1);
-	const [bikes, setBikes] = useState([newBkeWithId(lastKey)]);
-
+export function MultiBikeForm(props) {
 	function add() {
-		const k = lastKey + 1;
-		setLastKey(k);
-		setBikes([...bikes, newBkeWithId(k)]);
+		const k = maxKey(props.bikes) + 1;
+		props.setBikes([...props.bikes, newBkeWithId(k)]);
 	}
 
 	function replace(newBike, i) {
-		const result = [...bikes];
+		const result = [...props.bikes];
 		result[i] = newBike;
-		setBikes(result);
+		props.setBikes(result);
 	}
 
 	function remove(bike) {
-		setBikes(bikes.filter(b => b !== bike));
+		props.setBikes(props.bikes.filter(b => b !== bike));
 	}
 
 	return html`
 		<div>
-			${bikes.map((b, i) => html`
+			${props.bikes.map((b, i) => html`
 				<div key=${b.id}>
 					<${BikeForm} bike=${b} setBike=${nb => replace(nb, i)} />
 					<button onclick=${() => remove(b)}>Remove</button>
@@ -44,10 +113,22 @@ export function MultiBikeForm() {
 		</div>`;
 }
 
+function maxKey(bikes) {
+	let result;
+
+	for (const b of bikes) {
+		if (result === undefined || result < b.id) {
+			result = b.id;
+		}
+	}
+
+	return result;
+}
+
 export function BikeForm(props) {
 	// TODO: better validation. This accepts decimal values.
-	let nChainringTeeth = parseInt(props.bike.chainringTeeth, 10);
-	let nCogTeeth = parseInt(props.bike.cogTeeth, 10);
+	let nChainringTeeth = parseInt(props.bike.chainring, 10);
+	let nCogTeeth = parseInt(props.bike.cog, 10);
 	let gearInches;
 
 	if (isNaN(nChainringTeeth) || isNaN(nCogTeeth)) {
@@ -60,12 +141,12 @@ export function BikeForm(props) {
 		props.setBike({...props.bike, wheelSize});
 	}
 
-	function setChainringTeeth(chainringTeeth) {
-		props.setBike({...props.bike, chainringTeeth})
+	function setChainring(chainring) {
+		props.setBike({...props.bike, chainring})
 	}
 
-	function setCogTeeth(cogTeeth) {
-		props.setBike({...props.bike, cogTeeth})
+	function setCog(cog) {
+		props.setBike({...props.bike, cog})
 	}
 
 	const wheelSizeId = useId();
@@ -92,9 +173,9 @@ export function BikeForm(props) {
 				<td>
 					<input 
 						id=${chainringId} 
-						name="chainringTeeth" 
-						value=${props.bike.chainringTeeth} 
-						onchange=${e => setChainringTeeth(e.target.value)}
+						name="chainring" 
+						value=${props.bike.chainring} 
+						onchange=${e => setChainring(e.target.value)}
 						size="2"
 					/>
 				</td>
@@ -104,9 +185,9 @@ export function BikeForm(props) {
 				<td>
 					<input
 						id=${cogId}
-						name="cogTeeth"							
-						value=${props.bike.cogTeeth}
-						onchange=${e => setCogTeeth(e.target.value)}
+						name="cog"							
+						value=${props.bike.cog}
+						onchange=${e => setCog(e.target.value)}
 						size="2"
 					/>
 				</td>
@@ -133,9 +214,4 @@ function Select(props) {
 		>
 			${options}
 		</select>`;
-}
-
-
-export function App() {
-    return html`<${MultiBikeForm} />`;
 }
