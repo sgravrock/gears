@@ -137,7 +137,7 @@ export function BikeForm(props) {
 	if (isNaN(nChainringTeeth) || isNaN(nCogTeeth)) {
 		gearInches = '';
 	} else {
-		gearInches = props.bike.wheelSize * nChainringTeeth / nCogTeeth;
+		gearInches = Math.round(10 * props.bike.wheelSize * nChainringTeeth / nCogTeeth) / 10;
 	}
 
 	function setWheelSize(wheelSize) {

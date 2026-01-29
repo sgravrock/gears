@@ -62,7 +62,7 @@ describe('MultiBikeForm', function() {
 			changeField(root.querySelector('[name=cog]'), '24');
 
 			expect(root.querySelector('.result').textContent)
-				.toEqual('43.5225 inches');
+				.toEqual('43.5 inches');
 		});
 	});
 
