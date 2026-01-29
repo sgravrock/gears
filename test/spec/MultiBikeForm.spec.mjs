@@ -30,6 +30,21 @@ describe('MultiBikeForm', function() {
 			.toEqual('24');
 	});
 
+	it('does not allow removing the only form', function() {
+		const root = document.createElement('div');
+		render(html`<${TestFormStateContainer}/>`, root);
+		expect(findByText(root, 'button', 'Remove')).toBeFalsy();
+
+		act(function() {
+			findByText(root, 'button', 'Add Bike').click();
+		});
+
+		act(function() {
+			findByText(root, 'button', 'Remove').click();
+		});
+		expect(findByText(root, 'button', 'Remove')).toBeFalsy();
+	})
+
 	describe('An individual form', function() {
 		it('does not initially display a result', function() {
 			const root = document.createElement('div');
@@ -65,8 +80,6 @@ describe('MultiBikeForm', function() {
 				return candidate;
 			}
 		}
-
-		throw new Error(`Not found: ${selector} with text "${text}"`);
 	}
 
 	function changeField(field, newValue) {

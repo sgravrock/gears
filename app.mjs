@@ -100,12 +100,16 @@ export function MultiBikeForm(props) {
 		props.setBikes(props.bikes.filter(b => b !== bike));
 	}
 
+	const canRemove = props.bikes.length > 1;
+
 	return html`
 		<div>
 			${props.bikes.map((b, i) => html`
 				<div key=${b.id}>
-					<${BikeForm} bike=${b} setBike=${nb => replace(nb, i)} />
-					<button onclick=${() => remove(b)}>Remove</button>
+					<${BikeForm}bike=${b} setBike=${nb => replace(nb, i)} />
+					${canRemove && 
+						html`<button onclick=${() => remove(b)}>Remove</button>`
+					}
 				</div>
 			`)}
 			<button onclick=${add}>Add Bike</button>
