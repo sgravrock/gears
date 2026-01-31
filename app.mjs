@@ -51,29 +51,36 @@ export function UrlBasedState(props) {
 
 export function bikesFromQuery(queryString) {
 	const byId = {};
-	const paramToKey = {ws: 'wheelSize', cr: 'chainring', cg: 'cogs'};
 
-	// TODO: error reporting
-	for (const [k, v] of new URLSearchParams(queryString)) {
-		const m = k.match(/^(ws|cr|cg)([0-9]+)$/);
+	// TODO: error reporting?
+	for (const [paramName, v] of new URLSearchParams(queryString)) {
+		// e.g. cg1.3 produces groups cg, 1, and 3
+		const m = paramName.match(/^(ws|cr|cg)([0-9]+)(?:\.([0-9]+))?$/);
+		if (!m) {
+			continue;
+		}
 
-		if (m) {
-			const id = parseInt(m[2], 10);
-			const nv = parseFloat(v);
+		const bikeId = parseInt(m[2], 10);
+		const fieldIx = parseInt(m[3], 10);
+		const nv = parseFloat(v);
 
-			if (!isNaN(id) && !isNaN(nv)) {
-				if (!byId[id]) {
-					byId[id] = newBike(id);
-				}
+		if (isNaN(bikeId)
+				|| isNaN(nv)
+				|| (m[1] === 'cg' && isNaN(fieldIx))) {
+			debugger;
+			continue;
+		}
 
-				const k = paramToKey[m[1]];
+		if (!byId[bikeId]) {
+			byId[bikeId] = newBike(bikeId);
+		}
 
-				if (Array.isArray(byId[id][k])) {
-					replaceFirstUndefined(byId[id][k], nv);
-				} else {
-					byId[id][k] = nv;
-				}
-			}
+		if (m[1] === 'ws') {
+			byId[bikeId].wheelSize = nv;
+		} else if (m[1] === 'cr') {
+			byId[bikeId].chainring = nv;
+		} else {
+			byId[bikeId].cogs[fieldIx] = nv;
 		}
 	}
 
@@ -87,15 +94,6 @@ export function bikesFromQuery(queryString) {
 		.map(id => byId[id]);
 }
 
-function replaceFirstUndefined(arr, v) {
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] === undefined) {
-			arr[i] = v;
-			return;
-		}
-	}
-}
-
 export function queryFromBikes(bikes) {
 	let params = [];
 
@@ -104,7 +102,7 @@ export function queryFromBikes(bikes) {
 		params.push([`cr${b.id}`, b.chainring]);
 
 		for (let i = 0; i < b.cogs.length; i++) {
-			params.push([`cg${b.id}`, b.cogs[i]]);
+			params.push([`cg${b.id}.${i}`, b.cogs[i]]);
 		}
 	}
 

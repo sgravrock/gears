@@ -5,13 +5,14 @@ import {UrlBasedState, bikesFromQuery, queryFromBikes, config, newBike} from '..
 describe('state', function() {
 	describe('UrlBasedState', function () {
 		it('maps a populated query string to bikes', function () {
-			const search = '?ws0=24.87&cr0=42&cg0=11&' +
-				'ws2=27.32&cr2=&cg2=&' +
-				'ws3=27.32&cr3=32&cg3=36';
+			const search = '?ws0=24.87&cr0=42&cg0.0=11&' +
+				'ws2=27.32&cr2=&cg2.0=&' +
+				'ws3=27.32&cr3=32&cg3.0=36&cg3.1=32';
 			const expected = [
 				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
 				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
-				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32,
+					cogs: pad([36, 32], 13)},
 			];
 			const callback = jasmine.createSpy('callback');
 
@@ -50,13 +51,14 @@ describe('state', function() {
 		});
 
 		it('maps a populated query string to bikes', function () {
-			const input = '?ws0=24.87&cr0=42&cg0=11&' +
-				'ws2=27.32&cr2=&cg2=&' +
-				'ws3=27.32&cr3=32&cg3=36&cg3=24';
+			const input = '?ws0=24.87&cr0=42&cg0.0=11&' +
+				'ws2=27.32&cr2=&cg2.0=&' +
+				'ws3=27.32&cr3=32&cg3.0=36&cg3.2=24';
 			expect(bikesFromQuery(input)).toEqual([
 				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
 				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
-				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36, 24], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32,
+					cogs: pad([36, undefined, 24], 13)},
 			]);
 		});
 
@@ -64,7 +66,8 @@ describe('state', function() {
 			const input = [
 				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
 				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
-				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36, 24], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32,
+					cogs: pad([36, undefined, 24], 13)},
 			];
 			expect(bikesFromQuery(queryFromBikes(input))).toEqual(input);
 		});
