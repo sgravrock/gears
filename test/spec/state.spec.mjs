@@ -1,17 +1,17 @@
 import { html } from 'htm/preact';
 import { render } from 'preact';
-import {UrlBasedState, bikesFromQuery, queryFromBikes, config} from '../../app.mjs';
+import {UrlBasedState, bikesFromQuery, queryFromBikes, config, newBike} from '../../app.mjs';
 
 describe('state', function() {
 	describe('UrlBasedState', function () {
 		it('maps a populated query string to bikes', function () {
-			const search = '?ws0=24.87&cr0=42&cg0=13&' +
+			const search = '?ws0=24.87&cr0=42&cg0=11&' +
 				'ws2=27.32&cr2=&cg2=&' +
 				'ws3=27.32&cr3=32&cg3=36';
 			const expected = [
-				{id: 0, wheelSize: 24.87, chainring: 42, cog: 13},
-				{id: 2, wheelSize: 27.32},
-				{id: 3, wheelSize: 27.32, chainring: 32, cog: 36},
+				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
+				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36], 13)},
 			];
 			const callback = jasmine.createSpy('callback');
 
@@ -34,7 +34,7 @@ describe('state', function() {
 				${props => {setBikes = props.setBikes;}}
 			<//>`, root);
 
-			setBikes([{id: 2, wheelSize: '1.23'}]);
+			setBikes([{...newBike(2), wheelSize: '1.23'}]);
 
 			expect(replaceState).toHaveBeenCalledWith({}, '', '?ws2=1.23')
 		});
@@ -42,37 +42,41 @@ describe('state', function() {
 
 	describe('bikesFromQuery', function() {
 		it('returns an initial state when the query string is absent', function () {
-			expect(bikesFromQuery('')).toEqual([{
-				id: 0,
-				wheelSize: config.wheels[0].diameterIn
-			}]);
+			expect(bikesFromQuery('')).toEqual([newBike(0)]);
 		});
 
-		it('provides an initial state when the query string is empty', function () {
-			expect(bikesFromQuery('?')).toEqual([{
-				id: 0,
-				wheelSize: config.wheels[0].diameterIn
-			}]);
+		it('returns an initial state when the query string is empty', function () {
+			expect(bikesFromQuery('?')).toEqual([newBike(0)]);
 		});
 
 		it('maps a populated query string to bikes', function () {
-			const input = '?ws0=24.87&cr0=42&cg0=13&' +
+			const input = '?ws0=24.87&cr0=42&cg0=11&' +
 				'ws2=27.32&cr2=&cg2=&' +
-				'ws3=27.32&cr3=32&cg3=36';
+				'ws3=27.32&cr3=32&cg3=36&cg3=24';
 			expect(bikesFromQuery(input)).toEqual([
-				{id: 0, wheelSize: 24.87, chainring: 42, cog: 13},
-				{id: 2, wheelSize: 27.32},
-				{id: 3, wheelSize: 27.32, chainring: 32, cog: 36},
+				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
+				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36, 24], 13)},
 			]);
 		});
 
 		it('is the inverse of queryFromBikes', function() {
 			const input = [
-				{id: 0, wheelSize: 24.87, chainring: 42, cog: 13},
-				{id: 2, wheelSize: 27.32},
-				{id: 3, wheelSize: 27.32, chainring: 32, cog: 36},
+				{id: 0, wheelSize: 24.87, chainring: 42, cogs: pad([11], 13)},
+				{id: 2, wheelSize: 27.32, cogs: pad([], 13)},
+				{id: 3, wheelSize: 27.32, chainring: 32, cogs: pad([36, 24], 13)},
 			];
 			expect(bikesFromQuery(queryFromBikes(input))).toEqual(input);
 		});
 	});
+
+	function pad(a, len) {
+		a = [...a];
+
+		while (a.length < len) {
+			a.push(undefined);
+		}
+
+		return a;
+	}
 });

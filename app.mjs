@@ -1,12 +1,27 @@
-import { html } from 'htm/preact';
-import { useState, useId } from 'preact/hooks';
+import {html} from 'htm/preact';
+import {useId, useState} from 'preact/hooks';
 
 export const config = {
 	wheels: [
 		{label: '700c x 38mm', diameterIn: 27.32},
 		{label: '26 x 1.5"', diameterIn: 24.87},
-	]
+	],
+	maxNumCogs: 13
 };
+
+export function newBike(id) {
+	const result = {
+		id,
+		wheelSize: config.wheels[0].diameterIn,
+		cogs: []
+	};
+
+	for (let i = 0; i < config.maxNumCogs; i++) {
+		result.cogs.push(undefined);
+	}
+
+	return result;
+}
 
 // All state is stored in the query string. This allows the user to share any
 // configuration simply by copying the URL.
@@ -36,7 +51,7 @@ export function UrlBasedState(props) {
 
 export function bikesFromQuery(queryString) {
 	const byId = {};
-	const paramToKey = {ws: 'wheelSize', cr: 'chainring', cg: 'cog'};
+	const paramToKey = {ws: 'wheelSize', cr: 'chainring', cg: 'cogs'};
 
 	// TODO: error reporting
 	for (const [k, v] of new URLSearchParams(queryString)) {
@@ -48,16 +63,22 @@ export function bikesFromQuery(queryString) {
 
 			if (!isNaN(id) && !isNaN(nv)) {
 				if (!byId[id]) {
-					byId[id] = {id};
+					byId[id] = newBike(id);
 				}
 
-				byId[id][paramToKey[m[1]]] = nv;
+				const k = paramToKey[m[1]];
+
+				if (Array.isArray(byId[id][k])) {
+					replaceFirstUndefined(byId[id][k], nv);
+				} else {
+					byId[id][k] = nv;
+				}
 			}
 		}
 	}
 
 	if (Object.keys(byId).length === 0) {
-		return [{id: 0, wheelSize: config.wheels[0].diameterIn}];
+		return [newBike(0)];
 	}
 
 	// Sort by ID
@@ -66,13 +87,25 @@ export function bikesFromQuery(queryString) {
 		.map(id => byId[id]);
 }
 
+function replaceFirstUndefined(arr, v) {
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i] === undefined) {
+			arr[i] = v;
+			return;
+		}
+	}
+}
+
 export function queryFromBikes(bikes) {
 	let params = [];
 
 	for (const b of bikes) {
 		params.push([`ws${b.id}`, b.wheelSize]);
 		params.push([`cr${b.id}`, b.chainring]);
-		params.push([`cg${b.id}`, b.cog]);
+
+		for (let i = 0; i < b.cogs.length; i++) {
+			params.push([`cg${b.id}`, b.cogs[i]]);
+		}
 	}
 
 	// Omit params that haven't been set yet
@@ -80,14 +113,10 @@ export function queryFromBikes(bikes) {
 	return '?' + new URLSearchParams(params).toString();
 }
 
-function newBkeWithId(id) {
-	return {id, wheelSize: config.wheels[0].diameterIn.toString()};
-}
-
 export function MultiBikeForm(props) {
 	function add() {
 		const k = maxKey(props.bikes) + 1;
-		props.setBikes([...props.bikes, newBkeWithId(k)]);
+		props.setBikes([...props.bikes, newBike(k)]);
 	}
 
 	function replace(newBike, i) {
@@ -129,17 +158,6 @@ function maxKey(bikes) {
 }
 
 export function BikeForm(props) {
-	// TODO: better validation. This accepts decimal values.
-	let nChainringTeeth = parseInt(props.bike.chainring, 10);
-	let nCogTeeth = parseInt(props.bike.cog, 10);
-	let gearInches;
-
-	if (isNaN(nChainringTeeth) || isNaN(nCogTeeth)) {
-		gearInches = '';
-	} else {
-		gearInches = Math.round(10 * props.bike.wheelSize * nChainringTeeth / nCogTeeth) / 10;
-	}
-
 	function setWheelSize(wheelSize) {
 		props.setBike({...props.bike, wheelSize});
 	}
@@ -148,13 +166,16 @@ export function BikeForm(props) {
 		props.setBike({...props.bike, chainring})
 	}
 
-	function setCog(cog) {
-		props.setBike({...props.bike, cog})
+	function setCog(cog, i) {
+		const cogs = [...props.bike.cogs];
+		cogs[i] = cog;
+		props.setBike({...props.bike, cogs})
 	}
+
+	const result = calculate(props.bike);
 
 	const wheelSizeId = useId();
 	const chainringId = useId();
-	const cogId = useId();
 
 	return html`<form>
 		<table>
@@ -184,20 +205,61 @@ export function BikeForm(props) {
 				</td>
 			</tr>
 			<tr>
-				<td><label for=${cogId}>Cog</label></td>
+				<td>Cogs</td>
 				<td>
-					<input
-						id=${cogId}
-						name="cog"							
-						value=${props.bike.cog}
-						onchange=${e => setCog(e.target.value)}
-						size="2"
-					/>
+					${props.bike.cogs.map((cog, i) => html`
+						<input
+							name="cog${i}"
+							value=${cog}
+							onchange=${e => setCog(e.target.value, i)}
+							size="2"
+						/>
+					`)}
 				</td>
 			</tr>
 		</table>
-		<div class="result">${gearInches && `${gearInches} inches`}</div>
+		${result && html`<${ResultTable} result=${result} />`}
 	</form>`;
+}
+
+function calculate(bike) {
+	// TODO: better validation. This accepts decimal values.
+	const chainring = parseInt(bike.chainring, 10);
+	const cogs = bike.cogs
+		.map(c => parseInt(c, 10))
+		.filter(t =>!isNaN(t));
+
+	if (cogs.length === 0 || isNaN(chainring)) {
+		return null;
+	}
+
+	return {
+		chainring,
+		cogs,
+		ratios: cogs.map(c => chainring / c * bike.wheelSize)
+	}
+}
+
+function ResultTable(props) {
+	const rows = [];
+	for (let i = 0; i < props.result.cogs.length; i++) {
+		rows.push(html`
+			<tr>
+				<th>${props.result.cogs[i]}</th>
+				<td>${props.result.ratios[i].toFixed(1)}</td>
+			</tr>`
+		);
+	}
+
+	return html`
+		<table class="result">
+			<thead>
+			<tr>
+				<th>${props.result.chainring}</th>
+			</tr>
+			</thead>
+			<tbody>${rows}</tbody>
+		</table>`;
 }
 
 function Select(props) {

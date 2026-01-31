@@ -1,4 +1,4 @@
-import {config, MultiBikeForm} from "../../app.mjs";
+import {config, MultiBikeForm, newBike} from "../../app.mjs";
 import { render } from 'preact';
 import { useState } from 'preact/hooks';
 import { html } from 'htm/preact';
@@ -50,7 +50,7 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			expect(root.querySelector('.result').textContent).toEqual('');
+			expect(root.querySelector('.result')).toBeFalsy();
 		});
 
 		it('displays gear inches when all inputs are valid', function() {
@@ -59,15 +59,52 @@ describe('MultiBikeForm', function() {
 
 			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
 			changeField(root.querySelector('[name=chainring]'), '42');
-			changeField(root.querySelector('[name=cog]'), '24');
+			changeField(root.querySelector('[name=cog0]'), '24');
 
-			expect(root.querySelector('.result').textContent)
-				.toEqual('43.5 inches');
+			expect(root.querySelector('.result td').textContent)
+				.toEqual('43.5');
 		});
+
+		it('supports multiple cogs', function() {
+			const root = document.createElement('div');
+			render(html`<${TestFormStateContainer}/>`, root);
+
+			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
+			changeField(root.querySelector('[name=chainring]'), '42');
+			const cog0Field = root.querySelector('[name=cog0]')
+			const cog1Field = root.querySelector('[name=cog1]')
+			changeField(cog0Field, '24');
+			changeField(cog1Field, '13');
+			console.log('asserting')
+
+			const resultHeaderCells = Array.from(root.querySelectorAll(
+				'.result thead th'));
+			expect(resultHeaderCells.map(c => c.textContent))
+				.withContext('chainring header cells')
+				.toEqual(['42']);
+			const resultBodyRows = root.querySelectorAll('.result tbody tr');
+			expect(resultBodyRows.length)
+				.withContext('result body rows')
+				.toEqual(2);
+			expect(resultBodyRows[0].querySelector('th').textContent)
+				.withContext('first cog header')
+				.toEqual('24');
+			let cells = Array.from(resultBodyRows[0].querySelectorAll('td'));
+			expect(cells.map(c => c.textContent))
+				.withContext('first cog ratios')
+				.toEqual(['43.5']); // 24.87 * 42 / 24
+			expect(resultBodyRows[1].querySelector('th').textContent)
+				.withContext('second cog header')
+				.toEqual('13');
+			cells = Array.from(resultBodyRows[1].querySelectorAll('td'));
+			expect(cells.map(c => c.textContent))
+				.withContext('second cog ratios')
+				.toEqual(['80.3']); // 24.87 * 42 / 13
+		})
 	});
 
 	function TestFormStateContainer() {
-		const initialBikes = [{id: 1, wheelSize: config.wheels[0].diameterIn}];
+		const initialBikes = [newBike(1)];
 		const [bikes, setBikes] = useState(initialBikes);
 		return html`<${MultiBikeForm} bikes=${bikes} setBikes=${setBikes}/>`;
 	}
