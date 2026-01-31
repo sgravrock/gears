@@ -34,13 +34,13 @@ export function App() {
 		<//>`;
 }
 
-export function UrlBasedState(props) {
-	const [bikes, setBikes] = useState(bikesFromQuery(props.location.search));
-	return props.children({
+export function UrlBasedState({location, history, children}) {
+	const [bikes, setBikes] = useState(bikesFromQuery(location.search));
+	return children({
 		bikes,
 		setBikes: function(newBikes) {
 			setBikes(newBikes);
-			props.history.replaceState({}, '', queryFromBikes(newBikes));
+			history.replaceState({}, '', queryFromBikes(newBikes));
 		}
 	});
 }
@@ -109,27 +109,27 @@ export function queryFromBikes(bikes) {
 	return '?' + new URLSearchParams(params).toString();
 }
 
-export function MultiBikeForm(props) {
+export function MultiBikeForm({bikes, setBikes}) {
 	function add() {
-		const k = maxKey(props.bikes) + 1;
-		props.setBikes([...props.bikes, newBike(k)]);
+		const k = maxKey(bikes) + 1;
+		setBikes([...bikes, newBike(k)]);
 	}
 
 	function replace(newBike, i) {
-		const result = [...props.bikes];
+		const result = [...bikes];
 		result[i] = newBike;
-		props.setBikes(result);
+		setBikes(result);
 	}
 
 	function remove(bike) {
-		props.setBikes(props.bikes.filter(b => b !== bike));
+		setBikes(bikes.filter(b => b !== bike));
 	}
 
-	const canRemove = props.bikes.length > 1;
+	const canRemove = bikes.length > 1;
 
 	return html`
 		<div>
-			${props.bikes.map((b, i) => html`
+			${bikes.map((b, i) => html`
 				<div key=${b.id}>
 					<${BikeForm}bike=${b} setBike=${nb => replace(nb, i)} />
 					${canRemove && 
@@ -153,24 +153,24 @@ function maxKey(bikes) {
 	return result;
 }
 
-export function BikeForm(props) {
+export function BikeForm({bike, setBike}) {
 	function setWheelSize(wheelSize) {
-		props.setBike({...props.bike, wheelSize});
+		setBike({...bike, wheelSize});
 	}
 
 	function setChainring(chainring, i) {
-		const chainrings = [...props.bike.chainrings];
+		const chainrings = [...bike.chainrings];
 		chainrings[i] = chainring;
-		props.setBike({...props.bike, chainrings})
+		setBike({...bike, chainrings})
 	}
 
 	function setCog(cog, i) {
-		const cogs = [...props.bike.cogs];
+		const cogs = [...bike.cogs];
 		cogs[i] = cog;
-		props.setBike({...props.bike, cogs})
+		setBike({...bike, cogs})
 	}
 
-	const result = calculate(props.bike);
+	const result = calculate(bike);
 
 	const wheelSizeId = useId();
 
@@ -184,7 +184,7 @@ export function BikeForm(props) {
 						name="wheelSize"
 						options=${config.wheels}
 						optionKey="diameterIn"
-						selectedKey=${props.bike.wheelSize}
+						selectedKey=${bike.wheelSize}
 						onchange=${setWheelSize}
 					/>
 				</td>
@@ -192,7 +192,7 @@ export function BikeForm(props) {
 			<tr>
 				<td>Chainrings</td>
 				<td>
-					${props.bike.chainrings.map((c, i) => html`
+					${bike.chainrings.map((c, i) => html`
 						<input
 							name="chainring${i}"
 							value=${c}
@@ -206,7 +206,7 @@ export function BikeForm(props) {
 			<tr>
 				<td>Cogs</td>
 				<td>
-					${props.bike.cogs.map((cog, i) => html`
+					${bike.cogs.map((cog, i) => html`
 						<input
 							name="cog${i}"
 							value=${cog}
@@ -243,13 +243,13 @@ export function calculate(bike) {
 	}
 }
 
-function ResultTable(props) {
+function ResultTable({result}) {
 	const rows = [];
-	for (let i = 0; i < props.result.cogs.length; i++) {
+	for (let i = 0; i < result.cogs.length; i++) {
 		rows.push(html`
 			<tr>
-				<th>${props.result.cogs[i]}</th>
-				${props.result.ratios[i].map((r, j) => html`
+				<th>${result.cogs[i]}</th>
+				${result.ratios[i].map((r, j) => html`
 					<td key=${j}>${r.toFixed(1)}</td>
 				`)}
 			</tr>`
@@ -260,7 +260,7 @@ function ResultTable(props) {
 		<table class="result">
 			<thead>
 				<tr>
-					${props.result.chainrings.map((c, i) => html`
+					${result.chainrings.map((c, i) => html`
 						<th index=${i}>${c}</th>
 					`)}
 				</tr>
@@ -269,22 +269,20 @@ function ResultTable(props) {
 		</table>`;
 }
 
-function Select(props) {
-	const options = props.options.map(o => {
-		const k = o[props.optionKey];
-		const selected = k === props.selectedKey;
-		return html`<option key=${k} value=${k} selected=${selected}>
-			${o.label}
-		</option>`;
-	});
-
+function Select({id, name, options, optionKey, selectedKey, onchange}) {
 	return html`
 		<select
-			id=${props.id}
-			name=${props.name}
-			onchange=${e => props.onchange(e.target.value)}
+			id=${id}
+			name=${name}
+			onchange=${e => onchange(e.target.value)}
 		>
-			${options}
+			${options.map(o => {
+				const k = o[optionKey];
+				const selected = k === selectedKey;
+				return html`<option key=${k} value=${k} selected=${selected}>
+					${o.label}
+				</option>`;
+			})}
 		</select>`;
 }
 
