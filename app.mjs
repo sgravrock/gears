@@ -128,7 +128,7 @@ export function MultiBikeForm({bikes, setBikes}) {
 	const canRemove = bikes.length > 1;
 
 	return html`
-		<div>
+		<form onsubmit=${e => {e.preventDefault();}}>
 			${bikes.map((b, i) => html`
 				<div key=${b.id}>
 					<${BikeForm}bike=${b} setBike=${nb => replace(nb, i)} />
@@ -138,7 +138,7 @@ export function MultiBikeForm({bikes, setBikes}) {
 				</div>
 			`)}
 			<button onclick=${add}>Add Bike</button>
-		</div>`;
+		</form>`;
 }
 
 function maxKey(bikes) {
@@ -174,14 +174,14 @@ export function BikeForm({bike, setBike}) {
 
 	const wheelSizeId = useId();
 
-	return html`<form>
-		<table>
+	return html`
+		<table class="bike-form">
 			<tr>
 				<td><label for=${wheelSizeId}>Wheel size</label></td>
 				<td>
 					<${Select}
 						id=${wheelSizeId}
-						name="wheelSize"
+						name="wheelSize${bike.id}"
 						options=${config.wheels}
 						optionKey="diameterIn"
 						selectedKey=${bike.wheelSize}
@@ -194,7 +194,7 @@ export function BikeForm({bike, setBike}) {
 				<td>
 					${bike.chainrings.map((c, i) => html`
 						<input
-							name="chainring${i}"
+							name="chainring${bike.id}.${i}"
 							value=${c}
 							onchange=${e => setChainring(e.target.value, i)}
 							size="2"
@@ -208,7 +208,7 @@ export function BikeForm({bike, setBike}) {
 				<td>
 					${bike.cogs.map((cog, i) => html`
 						<input
-							name="cog${i}"
+							name="cog${bike.id}.${i}"
 							value=${cog}
 							onchange=${e => setCog(e.target.value, i)}
 							size="2"
@@ -218,7 +218,7 @@ export function BikeForm({bike, setBike}) {
 			</tr>
 		</table>
 		${result && html`<${ResultTable} result=${result} />`}
-	</form>`;
+	`;
 }
 
 export function calculate(bike) {

@@ -12,21 +12,21 @@ describe('MultiBikeForm', function() {
 		act(function() {
 			findByText(root, 'button', 'Add Bike').click();
 		});
-		expect(root.querySelectorAll('form').length).toEqual(2);
+		expect(root.querySelectorAll('.bike-form').length).toEqual(2);
 
 		act(function() {
 			findByText(root, 'button', 'Add Bike').click();
 		});
-		expect(root.querySelectorAll('form').length).toEqual(3);
+		expect(root.querySelectorAll('.bike-form').length).toEqual(3);
 
-		changeField(root.querySelectorAll('[name=chainring0]')[1], '24');
+		changeField(root.querySelector('[name="chainring2.0"]'), '24');
 
 		act(function() {
 			findByText(root, 'button', 'Remove').click();
 		});
 
-		expect(root.querySelectorAll('form').length).toEqual(2);
-		expect(root.querySelectorAll('[name=chainring0]')[0].value)
+		expect(root.querySelectorAll('.bike-form').length).toEqual(2);
+		expect(root.querySelector('[name="chainring2.0"]').value)
 			.toEqual('24');
 	});
 
@@ -57,9 +57,9 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainring0]'), '42');
-			changeField(root.querySelector('[name=cog0]'), '24');
+			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			changeField(root.querySelector('[name="chainring0.0"]'), '42');
+			changeField(root.querySelector('[name="cog0.0"]'), '24');
 
 			expect(root.querySelector('.result td').textContent)
 				.toEqual('43.5');
@@ -69,10 +69,11 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainring0]'), '42');
-			const cog0Field = root.querySelector('[name=cog0]')
-			const cog1Field = root.querySelector('[name=cog1]')
+			jasmine.debugLog(root.innerHTML);
+			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			changeField(root.querySelector('[name="chainring0.0"]'), '42');
+			const cog0Field = root.querySelector('[name="cog0.0"]')
+			const cog1Field = root.querySelector('[name="cog0.1"]')
 			changeField(cog0Field, '24');
 			changeField(cog1Field, '13');
 
@@ -105,11 +106,11 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainring0]'), '53');
-			changeField(root.querySelector('[name=chainring1]'), '39');
-			changeField(root.querySelector('[name=chainring2]'), '30');
-			changeField(root.querySelector('[name=cog0]'), '24');
+			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			changeField(root.querySelector('[name="chainring0.0"]'), '53');
+			changeField(root.querySelector('[name="chainring0.1"]'), '39');
+			changeField(root.querySelector('[name="chainring0.2"]'), '30');
+			changeField(root.querySelector('[name="cog0.0"]'), '24');
 
 			const resultHeaderCells = Array.from(root.querySelectorAll(
 				'.result thead th'));
@@ -135,7 +136,7 @@ describe('MultiBikeForm', function() {
 	});
 
 	function TestFormStateContainer() {
-		const initialBikes = [newBike(1)];
+		const initialBikes = [newBike(0)];
 		const [bikes, setBikes] = useState(initialBikes);
 		return html`<${MultiBikeForm} bikes=${bikes} setBikes=${setBikes}/>`;
 	}
