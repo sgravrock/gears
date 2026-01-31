@@ -222,7 +222,7 @@ export function BikeForm(props) {
 	</form>`;
 }
 
-function calculate(bike) {
+export function calculate(bike) {
 	// TODO: better validation. This accepts decimal values.
 	const chainring = parseInt(bike.chainring, 10);
 	const cogs = bike.cogs
