@@ -19,14 +19,14 @@ describe('MultiBikeForm', function() {
 		});
 		expect(root.querySelectorAll('form').length).toEqual(3);
 
-		changeField(root.querySelectorAll('[name=chainring]')[1], '24');
+		changeField(root.querySelectorAll('[name=chainring0]')[1], '24');
 
 		act(function() {
 			findByText(root, 'button', 'Remove').click();
 		});
 
 		expect(root.querySelectorAll('form').length).toEqual(2);
-		expect(root.querySelectorAll('[name=chainring]')[0].value)
+		expect(root.querySelectorAll('[name=chainring0]')[0].value)
 			.toEqual('24');
 	});
 
@@ -58,7 +58,7 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainring]'), '42');
+			changeField(root.querySelector('[name=chainring0]'), '42');
 			changeField(root.querySelector('[name=cog0]'), '24');
 
 			expect(root.querySelector('.result td').textContent)
@@ -70,12 +70,11 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
-			changeField(root.querySelector('[name=chainring]'), '42');
+			changeField(root.querySelector('[name=chainring0]'), '42');
 			const cog0Field = root.querySelector('[name=cog0]')
 			const cog1Field = root.querySelector('[name=cog1]')
 			changeField(cog0Field, '24');
 			changeField(cog1Field, '13');
-			console.log('asserting')
 
 			const resultHeaderCells = Array.from(root.querySelectorAll(
 				'.result thead th'));
@@ -100,6 +99,38 @@ describe('MultiBikeForm', function() {
 			expect(cells.map(c => c.textContent))
 				.withContext('second cog ratios')
 				.toEqual(['80.3']); // 24.87 * 42 / 13
+		});
+
+		it('supports multiple chainrings', function() {
+			const root = document.createElement('div');
+			render(html`<${TestFormStateContainer}/>`, root);
+
+			selectOption(root.querySelector('[name="wheelSize"]'), '26 x 1.5"');
+			changeField(root.querySelector('[name=chainring0]'), '53');
+			changeField(root.querySelector('[name=chainring1]'), '39');
+			changeField(root.querySelector('[name=chainring2]'), '30');
+			changeField(root.querySelector('[name=cog0]'), '24');
+
+			const resultHeaderCells = Array.from(root.querySelectorAll(
+				'.result thead th'));
+			expect(resultHeaderCells.map(c => c.textContent))
+				.withContext('chainring header cells')
+				.toEqual(['53', '39', '30']);
+			const resultBodyRows = root.querySelectorAll('.result tbody tr');
+			expect(resultBodyRows.length)
+				.withContext('result body rows')
+				.toEqual(1);
+			expect(resultBodyRows[0].querySelector('th').textContent)
+				.withContext('cog header')
+				.toEqual('24');
+			let cells = Array.from(resultBodyRows[0].querySelectorAll('td'));
+			expect(cells.map(c => c.textContent))
+				.withContext('first cog ratios')
+				.toEqual([
+					'54.9', // 24.87 * 53 / 24,
+					'40.4', // 24.87 * 39 / 24,
+					'31.1', // 24.87 * 30 / 24,
+				]);
 		})
 	});
 

@@ -6,21 +6,17 @@ export const config = {
 		{label: '700c x 38mm', diameterIn: 27.32},
 		{label: '26 x 1.5"', diameterIn: 24.87},
 	],
+	maxNumChainrings: 3,
 	maxNumCogs: 13
 };
 
 export function newBike(id) {
-	const result = {
+	return {
 		id,
 		wheelSize: config.wheels[0].diameterIn,
-		cogs: []
+		chainrings: arrayOfUndefined(config.maxNumChainrings),
+		cogs: arrayOfUndefined(config.maxNumCogs),
 	};
-
-	for (let i = 0; i < config.maxNumCogs; i++) {
-		result.cogs.push(undefined);
-	}
-
-	return result;
 }
 
 // All state is stored in the query string. This allows the user to share any
@@ -66,8 +62,7 @@ export function bikesFromQuery(queryString) {
 
 		if (isNaN(bikeId)
 				|| isNaN(nv)
-				|| (m[1] === 'cg' && isNaN(fieldIx))) {
-			debugger;
+				|| (m[1] !== 'ws' && isNaN(fieldIx))) {
 			continue;
 		}
 
@@ -78,7 +73,7 @@ export function bikesFromQuery(queryString) {
 		if (m[1] === 'ws') {
 			byId[bikeId].wheelSize = nv;
 		} else if (m[1] === 'cr') {
-			byId[bikeId].chainring = nv;
+			byId[bikeId].chainrings[fieldIx] = nv;
 		} else {
 			byId[bikeId].cogs[fieldIx] = nv;
 		}
@@ -99,7 +94,10 @@ export function queryFromBikes(bikes) {
 
 	for (const b of bikes) {
 		params.push([`ws${b.id}`, b.wheelSize]);
-		params.push([`cr${b.id}`, b.chainring]);
+
+		for (let i = 0; i < b.chainrings.length; i++) {
+			params.push([`cr${b.id}.${i}`, b.chainrings[i]]);
+		}
 
 		for (let i = 0; i < b.cogs.length; i++) {
 			params.push([`cg${b.id}.${i}`, b.cogs[i]]);
@@ -160,8 +158,10 @@ export function BikeForm(props) {
 		props.setBike({...props.bike, wheelSize});
 	}
 
-	function setChainring(chainring) {
-		props.setBike({...props.bike, chainring})
+	function setChainring(chainring, i) {
+		const chainrings = [...props.bike.chainrings];
+		chainrings[i] = chainring;
+		props.setBike({...props.bike, chainrings})
 	}
 
 	function setCog(cog, i) {
@@ -173,7 +173,6 @@ export function BikeForm(props) {
 	const result = calculate(props.bike);
 
 	const wheelSizeId = useId();
-	const chainringId = useId();
 
 	return html`<form>
 		<table>
@@ -191,15 +190,17 @@ export function BikeForm(props) {
 				</td>
 			</tr>
 			<tr>
-				<td><label for=${chainringId}>Chainring</label></td>
+				<td>Chainrings</td>
 				<td>
-					<input 
-						id=${chainringId} 
-						name="chainring" 
-						value=${props.bike.chainring} 
-						onchange=${e => setChainring(e.target.value)}
-						size="2"
-					/>
+					${props.bike.chainrings.map((c, i) => html`
+						<input
+							name="chainring${i}"
+							value=${c}
+							onchange=${e => setChainring(e.target.value, i)}
+							size="2"
+						/>
+
+					`)}
 				</td>
 			</tr>
 			<tr>
@@ -222,19 +223,23 @@ export function BikeForm(props) {
 
 export function calculate(bike) {
 	// TODO: better validation. This accepts decimal values.
-	const chainring = parseInt(bike.chainring, 10);
+	const chainrings = bike.chainrings
+		.map(c => parseInt(c, 10))
+		.filter(t =>!isNaN(t));
 	const cogs = bike.cogs
 		.map(c => parseInt(c, 10))
 		.filter(t =>!isNaN(t));
 
-	if (cogs.length === 0 || isNaN(chainring)) {
+	if (cogs.length === 0 || chainrings.length === 0) {
 		return null;
 	}
 
 	return {
-		chainring,
+		chainrings,
 		cogs,
-		ratios: cogs.map(c => chainring / c * bike.wheelSize)
+		ratios: cogs.map(cog => {
+			return chainrings.map(ring => ring / cog * bike.wheelSize);
+		})
 	}
 }
 
@@ -244,7 +249,9 @@ function ResultTable(props) {
 		rows.push(html`
 			<tr>
 				<th>${props.result.cogs[i]}</th>
-				<td>${props.result.ratios[i].toFixed(1)}</td>
+				${props.result.ratios[i].map((r, j) => html`
+					<td key=${j}>${r.toFixed(1)}</td>
+				`)}
 			</tr>`
 		);
 	}
@@ -252,9 +259,11 @@ function ResultTable(props) {
 	return html`
 		<table class="result">
 			<thead>
-			<tr>
-				<th>${props.result.chainring}</th>
-			</tr>
+				<tr>
+					${props.result.chainrings.map((c, i) => html`
+						<th index=${i}>${c}</th>
+					`)}
+				</tr>
 			</thead>
 			<tbody>${rows}</tbody>
 		</table>`;
@@ -277,4 +286,14 @@ function Select(props) {
 		>
 			${options}
 		</select>`;
+}
+
+function arrayOfUndefined(n) {
+	const a = [];
+
+	for (let i = 0; i < n; i++) {
+		a.push(undefined);
+	}
+
+	return a;
 }
