@@ -3,12 +3,11 @@ import {calculate} from "../../app.mjs";
 describe('calculate', function() {
 	describe('When there is at least one valid chainring and at least one valid cog', function() {
 		it('returns ratios for all combinations of valid gears', function() {
-			const input = {
+			const result = calculate('gi', {
 				wheelSize: '24.87',
 				chainrings: ['52', '42', 'bogus', ''],
 				cogs: ['32', '28', '14', 'bogus', '']
-			};
-			const result = calculate(input)
+			})
 			expect(result).toEqual({
 				chainrings: [52, 42],
 				cogs: [32, 28, 14],
@@ -21,12 +20,11 @@ describe('calculate', function() {
 		});
 
 		it('handles gaps in the lists of valid cogs', function() {
-			const input = {
+			const result = calculate('gi', {
 				wheelSize: '24.87',
 				chainrings: ['52'],
 				cogs: ['32', '', '14',]
-			};
-			const result = calculate(input)
+			})
 			expect(result).toEqual({
 				chainrings: [52],
 				cogs: [32, 14],
@@ -38,12 +36,11 @@ describe('calculate', function() {
 		});
 
 		it('handles gaps in the lists of valid chainrings', function() {
-			const input = {
+			const result = calculate('gi', {
 				wheelSize: '24.87',
 				chainrings: ['52', '', '42'],
 				cogs: ['14']
-			};
-			const result = calculate(input)
+			});
 			expect(result).toEqual({
 				chainrings: [52, 42],
 				cogs: [14],
@@ -55,24 +52,54 @@ describe('calculate', function() {
 	});
 
 	it('returns null when no chainrings are valid', function() {
-		const input = {
+		const result = calculate('gi', {
 			wheelSize: '24.87',
 			chainrings: ['NaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaN', 'nope', ''],
 			cogs: ['32', '28', '14']
-		};
-		const result = calculate(input);
+		});
 		expect(result).toBeNull();
 	});
 
 	it('returns null when no cogs are valid', function() {
-		const input = {
+		const result = calculate('gi', {
 			wheelSize: '24.87',
 			chainrings: ['42'],
 			cogs: ['nope', 'wrong', '']
-		};
-		const result = calculate(input);
+		});
 		expect(result).toBeNull();
 	});
+
+	describe('Units', function() {
+		const scenarios = [
+			{
+				id: 'gi',
+				label: 'Gear inches',
+				expected: 92.4
+			},
+			{
+				id: 'mph90',
+				label: 'MPH @ 90 RPM',
+				expected: 24.7
+			},
+			{
+				id: 'mph60',
+				label: 'MPH @ 60 RPM',
+				expected: 16.5
+			}
+		];
+
+		for (const {id, label, expected} of scenarios) {
+			it(`handles ${label}`, function() {
+				const result = calculate(id, {
+					wheelSize: '24.87',
+					chainrings: ['52'],
+					cogs: ['14']
+				});
+				expect(result.ratios[0][0]).toEqual(roundsTo(expected, 1));
+			});
+		}
+	})
+
 
 	function roundsTo(expected, decimalPlaces) {
 		expected = expected.toFixed(decimalPlaces);

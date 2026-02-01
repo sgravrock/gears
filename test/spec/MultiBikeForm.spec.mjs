@@ -53,7 +53,7 @@ describe('MultiBikeForm', function() {
 			expect(root.querySelector('.result')).toBeFalsy();
 		});
 
-		it('displays gear inches when all inputs are valid', function() {
+		it('displays results when all inputs are valid', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
@@ -138,7 +138,13 @@ describe('MultiBikeForm', function() {
 	function TestFormStateContainer() {
 		const initialBikes = [newBike(0)];
 		const [bikes, setBikes] = useState(initialBikes);
-		return html`<${MultiBikeForm} bikes=${bikes} setBikes=${setBikes}/>`;
+		const [unit, setUnit] = useState('gi');
+		return html`<${MultiBikeForm} 
+			bikes=${bikes}
+			setBikes=${setBikes}
+			unit=${unit}
+			setUnit=${setUnit}
+		/>`;
 	}
 
 	function findByText(root, selector, text) {

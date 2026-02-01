@@ -2,6 +2,11 @@ import {html} from 'htm/preact';
 import {useId, useState} from 'preact/hooks';
 
 export const config = {
+	units: [
+		{label: 'Gear inches', id: 'gi'},
+		{label: 'MPH @ 60 RPM', id: 'mph60'},
+		{label: 'MPH @ 90 RPM', id: 'mph90'},
+	],
 	wheels: [
 		{label: '700c x 38mm', diameterIn: 27.32},
 		{label: '26 x 1.5"', diameterIn: 24.87},
@@ -25,31 +30,51 @@ export function newBike(id) {
 export function App() {
 	return html`
 		<${UrlBasedState} location=${window.location} history=${window.history}>
-			${({bikes, setBikes}) => {
+			${({bikes, setBikes, unit, setUnit}) => {
 				return html`<${MultiBikeForm}
 					bikes=${bikes}
 					setBikes=${setBikes}
+					unit=${unit}
+					setUnit=${setUnit}
 				/>`;
 			}}
 		<//>`;
 }
 
 export function UrlBasedState({location, history, children}) {
-	const [bikes, setBikes] = useState(bikesFromQuery(location.search));
+	const initialState = stateFromQuery(location.search);
+	const [bikes, setBikes] = useState(initialState.bikes);
+	const [unit, setUnit] = useState(initialState.unit);
+
 	return children({
 		bikes,
 		setBikes: function(newBikes) {
 			setBikes(newBikes);
-			history.replaceState({}, '', queryFromBikes(newBikes));
+			history.replaceState({}, '',
+				queryFromState({bikes: newBikes, unit}));
+		},
+		unit,
+		setUnit: function(newUnit) {
+			setUnit(newUnit);
+			history.replaceState({}, '', queryFromState({unit: newUnit, bikes}));
 		}
 	});
 }
 
-export function bikesFromQuery(queryString) {
+export function stateFromQuery(queryString) {
+	const params = new URLSearchParams(queryString);
+
+	return {
+		bikes: bikesFromQueryParams(params),
+		unit: params.get('u') ?? config.units[0].id
+	};
+}
+
+function bikesFromQueryParams(urlSearchParams) {
 	const byId = {};
 
 	// TODO: error reporting?
-	for (const [paramName, v] of new URLSearchParams(queryString)) {
+	for (const [paramName, v] of urlSearchParams) {
 		// e.g. cg1.3 produces groups cg, 1, and 3
 		const m = paramName.match(/^(ws|cr|cg)([0-9]+)(?:\.([0-9]+))?$/);
 		if (!m) {
@@ -89,7 +114,15 @@ export function bikesFromQuery(queryString) {
 		.map(id => byId[id]);
 }
 
-export function queryFromBikes(bikes) {
+export function queryFromState({bikes, unit}) {
+	const params = [
+		...queryParamsFromBikes(bikes),
+		['u', unit]
+	];
+	return '?' + new URLSearchParams(params).toString();
+}
+
+function queryParamsFromBikes(bikes) {
 	let params = [];
 
 	for (const b of bikes) {
@@ -105,11 +138,10 @@ export function queryFromBikes(bikes) {
 	}
 
 	// Omit params that haven't been set yet
-	params = params.filter(p => !!p[1]);
-	return '?' + new URLSearchParams(params).toString();
+	return params.filter(p => !!p[1]);
 }
 
-export function MultiBikeForm({bikes, setBikes}) {
+export function MultiBikeForm({bikes, setBikes, unit, setUnit}) {
 	function add() {
 		const k = maxKey(bikes) + 1;
 		setBikes([...bikes, newBike(k)]);
@@ -129,9 +161,23 @@ export function MultiBikeForm({bikes, setBikes}) {
 
 	return html`
 		<form onsubmit=${e => {e.preventDefault();}}>
+			<label>
+				Unit:
+				<${Select}
+					name="unit"
+					options=${config.units}
+					optionKey="id"
+					selectedKey=${unit}
+					onchange=${setUnit}
+				/>
+			</label>
 			${bikes.map((b, i) => html`
 				<div key=${b.id}>
-					<${BikeForm}bike=${b} setBike=${nb => replace(nb, i)} />
+					<${BikeForm} 
+						bike=${b} 
+						setBike=${nb => replace(nb, i)} 
+						unit=${unit}
+					/>
 					${canRemove && 
 						html`<button onclick=${() => remove(b)}>Remove</button>`
 					}
@@ -153,7 +199,7 @@ function maxKey(bikes) {
 	return result;
 }
 
-export function BikeForm({bike, setBike}) {
+export function BikeForm({bike, setBike, unit}) {
 	function setWheelSize(wheelSize) {
 		setBike({...bike, wheelSize});
 	}
@@ -170,7 +216,7 @@ export function BikeForm({bike, setBike}) {
 		setBike({...bike, cogs})
 	}
 
-	const result = calculate(bike);
+	const result = calculate(unit, bike);
 
 	const wheelSizeId = useId();
 
@@ -221,7 +267,7 @@ export function BikeForm({bike, setBike}) {
 	`;
 }
 
-export function calculate(bike) {
+export function calculate(unit, bike) {
 	// TODO: better validation. This accepts decimal values.
 	const chainrings = bike.chainrings
 		.map(c => parseInt(c, 10))
@@ -238,8 +284,27 @@ export function calculate(bike) {
 		chainrings,
 		cogs,
 		ratios: cogs.map(cog => {
-			return chainrings.map(ring => ring / cog * bike.wheelSize);
+			return chainrings.map(ring => ratio(unit, bike.wheelSize, ring, cog));
 		})
+	}
+}
+
+function ratio(unit, wheelSize, chainring, cog) {
+	const gearInches = chainring / cog * wheelSize;
+
+	switch (unit) {
+		case 'gi':
+			return gearInches;
+
+		case 'mph60':
+		case 'mph90':
+			const inchesPerMile = 63360;
+			const inchesPerRev = gearInches * Math.PI;
+			const rpm = unit === 'mph60' ? 60 : 90;
+			return inchesPerRev * rpm * 60 / inchesPerMile;
+
+		default:
+			throw new Error(`Unrecognized unit: ${unit}`);
 	}
 }
 
