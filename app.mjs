@@ -172,7 +172,7 @@ export function MultiBikeForm({bikes, setBikes, unit, setUnit}) {
 					onchange=${setUnit}
 				/>
 			</label>
-			<div class="bikes">
+			<table>
 				${bikes.map((b, i) => html`
 					<${Fragment} key=${b.id}>
 						<${BikeForm} 
@@ -223,52 +223,56 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 	const wheelSizeId = useId();
 
 	return html`
-		<div>
-			<table class="bike-form">
-				<tr>
-					<td><label for=${wheelSizeId}>Wheel size</label></td>
-					<td>
-						<${Select}
-							id=${wheelSizeId}
-							name="wheelSize${bike.id}"
-							options=${config.wheels}
-							optionKey="diameterIn"
-							selectedKey=${bike.wheelSize}
-							onchange=${setWheelSize}
-						/>
-					</td>
-				</tr>
-				<tr>
-					<td>Chainrings</td>
-					<td>
-						${bike.chainrings.map((c, i) => html`
-							<input
-								name="chainring${bike.id}.${i}"
-								value=${c}
-								onchange=${e => setChainring(e.target.value, i)}
-								size="2"
+		<tr>
+			<td>
+				<table class="bike-form">
+					<tr>
+						<td><label for=${wheelSizeId}>Wheel size</label></td>
+						<td>
+							<${Select}
+								id=${wheelSizeId}
+								name="wheelSize${bike.id}"
+								options=${config.wheels}
+								optionKey="diameterIn"
+								selectedKey=${bike.wheelSize}
+								onchange=${setWheelSize}
 							/>
-	
-						`)}
-					</td>
-				</tr>
-				<tr>
-					<td>Cogs</td>
-					<td>
-						${bike.cogs.map((cog, i) => html`
-							<input
-								name="cog${bike.id}.${i}"
-								value=${cog}
-								onchange=${e => setCog(e.target.value, i)}
-								size="2"
-							/>
-						`)}
-					</td>
-				</tr>
-			</table>
-			${canRemove && html`<button onclick=${remove}>Remove</button>`}
-		</div>
-		${result && html`<${ResultTable} result=${result} />`}
+						</td>
+					</tr>
+					<tr>
+						<td>Chainrings</td>
+						<td>
+							${bike.chainrings.map((c, i) => html`
+								<input
+									name="chainring${bike.id}.${i}"
+									value=${c}
+									onchange=${e => setChainring(e.target.value, i)}
+									size="2"
+								/>
+		
+							`)}
+						</td>
+					</tr>
+					<tr>
+						<td>Cogs</td>
+						<td>
+							${bike.cogs.map((cog, i) => html`
+								<input
+									name="cog${bike.id}.${i}"
+									value=${cog}
+									onchange=${e => setCog(e.target.value, i)}
+									size="2"
+								/>
+							`)}
+						</td>
+					</tr>
+				</table>
+				${canRemove && html`<button onclick=${remove}>Remove</button>`}
+			</td>
+			<td>
+				${result && html`<${ResultTable} result=${result} />`}
+			</td>
+		</tr>
 	`;
 }
 
