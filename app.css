@@ -1,3 +1,8 @@
+.bikes>tr>td {
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+
 .result thead th {
 	text-align: left;
 }

@@ -172,7 +172,7 @@ export function MultiBikeForm({bikes, setBikes, unit, setUnit}) {
 					onchange=${setUnit}
 				/>
 			</label>
-			<table>
+			<table class="bikes">
 				${bikes.map((b, i) => html`
 					<${Fragment} key=${b.id}>
 						<${BikeForm} 
