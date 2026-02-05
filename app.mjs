@@ -325,8 +325,9 @@ function ResultTable({result}) {
 		<table class="result">
 			<thead>
 				<tr>
+					<th></th>
 					${result.chainrings.map((c, i) => html`
-						<th index=${i}>${c}</th>
+						<th key=${i}>${c}</th>
 					`)}
 				</tr>
 			</thead>
