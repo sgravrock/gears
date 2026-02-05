@@ -81,7 +81,7 @@ describe('MultiBikeForm', function() {
 				'.result thead th'));
 			expect(resultHeaderCells.map(c => c.textContent))
 				.withContext('chainring header cells')
-				.toEqual(['42']);
+				.toEqual(['', '42']);
 			const resultBodyRows = root.querySelectorAll('.result tbody tr');
 			expect(resultBodyRows.length)
 				.withContext('result body rows')
@@ -116,7 +116,7 @@ describe('MultiBikeForm', function() {
 				'.result thead th'));
 			expect(resultHeaderCells.map(c => c.textContent))
 				.withContext('chainring header cells')
-				.toEqual(['53', '39', '30']);
+				.toEqual(['', '53', '39', '30']);
 			const resultBodyRows = root.querySelectorAll('.result tbody tr');
 			expect(resultBodyRows.length)
 				.withContext('result body rows')

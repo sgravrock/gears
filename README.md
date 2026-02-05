@@ -13,7 +13,7 @@ With your web server running, access test/SpecRunner.html in your browser.
 
 ## Deployment
 
-Copy index.html, app.mjs, and the vendor directory to your server.
+Copy index.html, app.mjs, app.css, and the vendor directory to your server.
 
 ## Updating dependencies
 

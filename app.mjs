@@ -1,3 +1,4 @@
+import {Fragment} from 'preact';
 import {html} from 'htm/preact';
 import {useId, useState} from 'preact/hooks';
 
@@ -171,18 +172,19 @@ export function MultiBikeForm({bikes, setBikes, unit, setUnit}) {
 					onchange=${setUnit}
 				/>
 			</label>
-			${bikes.map((b, i) => html`
-				<div key=${b.id}>
-					<${BikeForm} 
-						bike=${b} 
-						setBike=${nb => replace(nb, i)} 
-						unit=${unit}
-					/>
-					${canRemove && 
-						html`<button onclick=${() => remove(b)}>Remove</button>`
-					}
-				</div>
-			`)}
+			<div class="bikes">
+				${bikes.map((b, i) => html`
+					<${Fragment} key=${b.id}>
+						<${BikeForm} 
+							bike=${b} 
+							setBike=${nb => replace(nb, i)}
+							canRemove=${canRemove}
+							remove=${() => remove(b)}
+							unit=${unit}
+						/>
+					</${Fragment}>
+				`)}
+			</div>
 			<button onclick=${add}>Add Bike</button>
 		</form>`;
 }
@@ -199,7 +201,7 @@ function maxKey(bikes) {
 	return result;
 }
 
-export function BikeForm({bike, setBike, unit}) {
+export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 	function setWheelSize(wheelSize) {
 		setBike({...bike, wheelSize});
 	}
@@ -221,48 +223,51 @@ export function BikeForm({bike, setBike, unit}) {
 	const wheelSizeId = useId();
 
 	return html`
-		<table class="bike-form">
-			<tr>
-				<td><label for=${wheelSizeId}>Wheel size</label></td>
-				<td>
-					<${Select}
-						id=${wheelSizeId}
-						name="wheelSize${bike.id}"
-						options=${config.wheels}
-						optionKey="diameterIn"
-						selectedKey=${bike.wheelSize}
-						onchange=${setWheelSize}
-					/>
-				</td>
-			</tr>
-			<tr>
-				<td>Chainrings</td>
-				<td>
-					${bike.chainrings.map((c, i) => html`
-						<input
-							name="chainring${bike.id}.${i}"
-							value=${c}
-							onchange=${e => setChainring(e.target.value, i)}
-							size="2"
+		<div>
+			<table class="bike-form">
+				<tr>
+					<td><label for=${wheelSizeId}>Wheel size</label></td>
+					<td>
+						<${Select}
+							id=${wheelSizeId}
+							name="wheelSize${bike.id}"
+							options=${config.wheels}
+							optionKey="diameterIn"
+							selectedKey=${bike.wheelSize}
+							onchange=${setWheelSize}
 						/>
-
-					`)}
-				</td>
-			</tr>
-			<tr>
-				<td>Cogs</td>
-				<td>
-					${bike.cogs.map((cog, i) => html`
-						<input
-							name="cog${bike.id}.${i}"
-							value=${cog}
-							onchange=${e => setCog(e.target.value, i)}
-							size="2"
-						/>
-					`)}
-				</td>
-			</tr>
-		</table>
+					</td>
+				</tr>
+				<tr>
+					<td>Chainrings</td>
+					<td>
+						${bike.chainrings.map((c, i) => html`
+							<input
+								name="chainring${bike.id}.${i}"
+								value=${c}
+								onchange=${e => setChainring(e.target.value, i)}
+								size="2"
+							/>
+	
+						`)}
+					</td>
+				</tr>
+				<tr>
+					<td>Cogs</td>
+					<td>
+						${bike.cogs.map((cog, i) => html`
+							<input
+								name="cog${bike.id}.${i}"
+								value=${cog}
+								onchange=${e => setCog(e.target.value, i)}
+								size="2"
+							/>
+						`)}
+					</td>
+				</tr>
+			</table>
+			${canRemove && html`<button onclick=${remove}>Remove</button>`}
+		</div>
 		${result && html`<${ResultTable} result=${result} />`}
 	`;
 }
@@ -322,7 +327,7 @@ function ResultTable({result}) {
 	}
 
 	return html`
-		<table class="result">
+		<table class="result" border>
 			<thead>
 				<tr>
 					<th></th>
