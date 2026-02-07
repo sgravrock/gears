@@ -46,6 +46,14 @@ describe('MultiBikeForm', function() {
 	})
 
 	describe('An individual form', function() {
+		it('initially selects the default wheel size', function() {
+			const root = document.createElement('div');
+			render(html`<${TestFormStateContainer}/>`, root);
+
+			expect(root.querySelector('[name="wheelSize0"]').value)
+				.toEqual('24.87');
+		});
+
 		it('does not initially display a result', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
@@ -57,7 +65,8 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			selectOption(root.querySelector('[name="wheelSize0"]'),
+				'26 X 1.5 / 38-559 / MTB');
 			changeField(root.querySelector('[name="chainring0.0"]'), '42');
 			changeField(root.querySelector('[name="cog0.0"]'), '24');
 
@@ -70,7 +79,8 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			jasmine.debugLog(root.innerHTML);
-			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			selectOption(root.querySelector('[name="wheelSize0"]'),
+				'26 X 1.5 / 38-559 / MTB');
 			changeField(root.querySelector('[name="chainring0.0"]'), '42');
 			const cog0Field = root.querySelector('[name="cog0.0"]')
 			const cog1Field = root.querySelector('[name="cog0.1"]')
@@ -106,7 +116,8 @@ describe('MultiBikeForm', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
 
-			selectOption(root.querySelector('[name="wheelSize0"]'), '26 x 1.5"');
+			selectOption(root.querySelector('[name="wheelSize0"]'),
+				'26 X 1.5 / 38-559 / MTB');
 			changeField(root.querySelector('[name="chainring0.0"]'), '53');
 			changeField(root.querySelector('[name="chainring0.1"]'), '39');
 			changeField(root.querySelector('[name="chainring0.2"]'), '30');
