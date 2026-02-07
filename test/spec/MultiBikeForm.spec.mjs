@@ -66,7 +66,7 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			selectOption(root.querySelector('[name="wheelSize0"]'),
-				'26 X 1.5 / 38-559 / MTB');
+				'26 X 1.5\" / 38-559');
 			changeField(root.querySelector('[name="chainring0.0"]'), '42');
 			changeField(root.querySelector('[name="cog0.0"]'), '24');
 
@@ -80,7 +80,7 @@ describe('MultiBikeForm', function() {
 
 			jasmine.debugLog(root.innerHTML);
 			selectOption(root.querySelector('[name="wheelSize0"]'),
-				'26 X 1.5 / 38-559 / MTB');
+				'26 X 1.5" / 38-559');
 			changeField(root.querySelector('[name="chainring0.0"]'), '42');
 			const cog0Field = root.querySelector('[name="cog0.0"]')
 			const cog1Field = root.querySelector('[name="cog0.1"]')
@@ -117,7 +117,7 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			selectOption(root.querySelector('[name="wheelSize0"]'),
-				'26 X 1.5 / 38-559 / MTB');
+				'26 X 1.5" / 38-559');
 			changeField(root.querySelector('[name="chainring0.0"]'), '53');
 			changeField(root.querySelector('[name="chainring0.1"]'), '39');
 			changeField(root.querySelector('[name="chainring0.2"]'), '30');
