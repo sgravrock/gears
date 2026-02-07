@@ -5,26 +5,26 @@ import {UrlBasedState, stateFromQuery, queryFromState, newBike} from '../../app.
 describe('state', function() {
 	describe('UrlBasedState', function () {
 		it('maps a populated query string to bikes and units', function () {
-			const search = '?ws0=24.87&cr0.0=42&cg0.0=11&' +
-				'ws2=27.32&cr2=&cg2.0=&' +
-				'ws3=27.32&cr3.0=32&cr3.1=22&cg3.0=36&cg3.1=32&' +
+			const search = '?ts0=24.87&cr0.0=42&cg0.0=11&' +
+				'ts2=27.32&cr2=&cg2.0=&' +
+				'ts3=27.32&cr3.0=32&cr3.1=22&cg3.0=36&cg3.1=32&' +
 				'u=mph90';
 			const expectedBikes = [
 				{
 					id: 0,
-					wheelSize: 24.87,
+					tireSize: 24.87,
 					chainrings: pad([42], 3),
 					cogs: pad([11], 13)
 				},
 				{
 					id: 2,
-					wheelSize: 27.32,
+					tireSize: 27.32,
 					chainrings: pad([], 3),
 					cogs: pad([], 13)
 				},
 				{
 					id: 3,
-					wheelSize: 27.32,
+					tireSize: 27.32,
 					chainrings: pad([32, 22], 3),
 					cogs: pad([36, 32], 13)
 				},
@@ -55,9 +55,9 @@ describe('state', function() {
 						${props => {setBikes = props.setBikes;}}
 				<//>`, root);
 
-			setBikes([{...newBike(2), wheelSize: '1.23'}]);
+			setBikes([{...newBike(2), tireSize: '1.23'}]);
 
-			expect(replaceState).toHaveBeenCalledWith({}, '', '?ws2=1.23&u=gi');
+			expect(replaceState).toHaveBeenCalledWith({}, '', '?ts2=1.23&u=gi');
 		});
 
 		it('calls history.replaceState when setUnit is called', function() {
@@ -74,7 +74,7 @@ describe('state', function() {
 			setUnit('mph60');
 
 			expect(replaceState).toHaveBeenCalledWith({}, '',
-				'?ws0=24.87&u=mph60');
+				'?ts0=24.87&u=mph60');
 		});
 	});
 
@@ -94,26 +94,26 @@ describe('state', function() {
 		});
 
 		it('maps a populated query string to state', function () {
-			const input = '?ws0=24.87&cr0.0=52&cr0.1=42&cg0.0=11&' +
-				'ws2=27.32&cr2.0=&cg2.0=&' +
-				'ws3=27.32&cr3.0=32&cg3.0=36&cg3.2=24&' +
+			const input = '?ts0=24.87&cr0.0=52&cr0.1=42&cg0.0=11&' +
+				'ts2=27.32&cr2.0=&cg2.0=&' +
+				'ts3=27.32&cr3.0=32&cg3.0=36&cg3.2=24&' +
 				'u=mph90';
 			expect(stateFromQuery(input)).toEqual({
 				bikes: [
 					{
 						id: 0,
-						wheelSize: 24.87,
+						tireSize: 24.87,
 						chainrings: pad([52, 42], 3),
 						cogs: pad([11], 13)
 					},
 					{
 						id: 2,
-						wheelSize: 27.32,
+						tireSize: 27.32,
 						chainrings: pad([], 3),
 						cogs: pad([], 13)},
 					{
 						id: 3,
-						wheelSize: 27.32,
+						tireSize: 27.32,
 						chainrings: pad([32], 3),
 						cogs: pad([36, undefined, 24], 13)
 					},
@@ -127,26 +127,28 @@ describe('state', function() {
 				bikes: [
 					{
 						id: 0,
-						wheelSize: 24.87,
+						tireSize: 24.87,
 						chainrings: pad([42], 3),
 						cogs: pad([11], 13)
 					},
 					{
 						id: 2,
-						wheelSize: 27.32,
+						tireSize: 27.32,
 						chainrings: pad([], 3),
 						cogs: pad([], 13)
 					},
 					{
 						id: 3,
-						wheelSize: 27.32,
+						tireSize: 27.32,
 						chainrings: pad([32], 3),
 						cogs: pad([36, undefined, 24], 13)
 					},
 				],
 				unit: 'mph60'
 			};
-			expect(stateFromQuery(queryFromState(input))).toEqual(input);
+			const qs = queryFromState(input);
+			jasmine.debugLog('query string: ' + qs);
+			expect(stateFromQuery(qs)).toEqual(input);
 		});
 	});
 

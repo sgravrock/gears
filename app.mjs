@@ -3,7 +3,7 @@ import {html} from 'htm/preact';
 import {useId, useState} from 'preact/hooks';
 
 export const config = {
-	defaultWheelSize: 24.87,
+	defaultTireSize: 24.87,
 	maxNumChainrings: 3,
 	maxNumCogs: 13,
 	units: [
@@ -11,7 +11,7 @@ export const config = {
 		{label: 'MPH @ 60 RPM', id: 'mph60'},
 		{label: 'MPH @ 90 RPM', id: 'mph90'},
 	],
-	wheelGroups: [
+	tireGroups: [
 		{
 			label: "29\" / fat 700c",
 			options: [
@@ -289,7 +289,7 @@ export const config = {
 export function newBike(id) {
 	return {
 		id,
-		wheelSize: config.defaultWheelSize,
+		tireSize: config.defaultTireSize,
 		chainrings: arrayOfUndefined(config.maxNumChainrings),
 		cogs: arrayOfUndefined(config.maxNumCogs),
 	};
@@ -347,7 +347,7 @@ function bikesFromQueryParams(urlSearchParams) {
 	// TODO: error reporting?
 	for (const [paramName, v] of urlSearchParams) {
 		// e.g. cg1.3 produces groups cg, 1, and 3
-		const m = paramName.match(/^(ws|cr|cg)([0-9]+)(?:\.([0-9]+))?$/);
+		const m = paramName.match(/^(ts|cr|cg)([0-9]+)(?:\.([0-9]+))?$/);
 		if (!m) {
 			continue;
 		}
@@ -358,7 +358,7 @@ function bikesFromQueryParams(urlSearchParams) {
 
 		if (isNaN(bikeId)
 				|| isNaN(nv)
-				|| (m[1] !== 'ws' && isNaN(fieldIx))) {
+				|| (m[1] !== 'ts' && isNaN(fieldIx))) {
 			continue;
 		}
 
@@ -366,8 +366,8 @@ function bikesFromQueryParams(urlSearchParams) {
 			byId[bikeId] = newBike(bikeId);
 		}
 
-		if (m[1] === 'ws') {
-			byId[bikeId].wheelSize = nv;
+		if (m[1] === 'ts') {
+			byId[bikeId].tireSize = nv;
 		} else if (m[1] === 'cr') {
 			byId[bikeId].chainrings[fieldIx] = nv;
 		} else {
@@ -397,7 +397,7 @@ function queryParamsFromBikes(bikes) {
 	let params = [];
 
 	for (const b of bikes) {
-		params.push([`ws${b.id}`, b.wheelSize]);
+		params.push([`ts${b.id}`, b.tireSize]);
 
 		for (let i = 0; i < b.chainrings.length; i++) {
 			params.push([`cr${b.id}.${i}`, b.chainrings[i]]);
@@ -472,8 +472,8 @@ function maxKey(bikes) {
 }
 
 export function BikeForm({bike, setBike, unit, remove, canRemove}) {
-	function setWheelSize(wheelSize) {
-		setBike({...bike, wheelSize});
+	function setTireSize(tireSize) {
+		setBike({...bike, tireSize});
 	}
 
 	function setChainring(chainring, i) {
@@ -490,22 +490,22 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 
 	const result = calculate(unit, bike);
 
-	const wheelSizeId = useId();
+	const tireSizeId = useId();
 
 	return html`
 		<tr>
 			<td>
 				<table class="bike-form">
 					<tr>
-						<td><label for=${wheelSizeId}>Wheel size</label></td>
+						<td><label for=${tireSizeId}>Tire size</label></td>
 						<td>
 							<${Select}
-								id=${wheelSizeId}
-								name="wheelSize${bike.id}"
-								optionGroups=${config.wheelGroups}
+								id=${tireSizeId}
+								name="tireSize${bike.id}"
+								optionGroups=${config.tireGroups}
 								optionKey="diameterIn"
-								selectedKey=${bike.wheelSize}
-								onchange=${setWheelSize}
+								selectedKey=${bike.tireSize}
+								onchange=${setTireSize}
 							/>
 						</td>
 					</tr>
@@ -563,13 +563,13 @@ export function calculate(unit, bike) {
 		chainrings,
 		cogs,
 		ratios: cogs.map(cog => {
-			return chainrings.map(ring => ratio(unit, bike.wheelSize, ring, cog));
+			return chainrings.map(ring => ratio(unit, bike.tireSize, ring, cog));
 		})
 	}
 }
 
-function ratio(unit, wheelSize, chainring, cog) {
-	const gearInches = chainring / cog * wheelSize;
+function ratio(unit, tireSize, chainring, cog) {
+	const gearInches = chainring / cog * tireSize;
 
 	switch (unit) {
 		case 'gi':
