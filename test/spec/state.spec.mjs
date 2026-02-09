@@ -74,7 +74,7 @@ describe('state', function() {
 			setUnit('mph60');
 
 			expect(replaceState).toHaveBeenCalledWith({}, '',
-				'?ts0=24.87&u=mph60');
+				'?ts0=26-24.87&u=mph60');
 		});
 	});
 

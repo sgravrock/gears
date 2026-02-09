@@ -209,7 +209,7 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 
 	const result = calculate(unit, bike);
 
-	const tireSizeId = useId();
+	const tireSizeFieldId = useId();
 
 	// Select the option from the cassette dropdown that matches the current
 	// cogs, or custom if there is no match. This keeps the dropdown and the
@@ -235,13 +235,13 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 			<td>
 				<table class="bike-form">
 					<tr>
-						<td><label for=${tireSizeId}>Tire size</label></td>
+						<td><label for=${tireSizeFieldId}>Tire size</label></td>
 						<td>
 							<${Select}
-								id=${tireSizeId}
+								id=${tireSizeFieldId}
 								name="tireSize${bike.id}"
 								optionGroups=${config.tireGroups}
-								optionKey="diameterIn"
+								optionKey="id"
 								selectedKey=${bike.tireSize}
 								onchange=${setTireSize}
 							/>
@@ -323,17 +323,19 @@ export function calculate(unit, bike) {
 		return null;
 	}
 
+	const tireDiameterIn = config.tireSizesById[bike.tireSize].diameterIn;
+
 	return {
 		chainrings,
 		cogs,
 		ratios: cogs.map(cog => {
-			return chainrings.map(ring => ratio(unit, bike.tireSize, ring, cog));
+			return chainrings.map(ring => ratio(unit, tireDiameterIn, ring, cog));
 		})
 	}
 }
 
-function ratio(unit, tireSize, chainring, cog) {
-	const gearInches = chainring / cog * tireSize;
+function ratio(unit, tireDiameterIn, chainring, cog) {
+	const gearInches = chainring / cog * tireDiameterIn;
 
 	switch (unit) {
 		case 'gi':

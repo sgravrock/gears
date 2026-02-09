@@ -4,7 +4,7 @@ describe('calculate', function() {
 	describe('When there is at least one valid chainring and at least one valid cog', function() {
 		it('returns ratios for all combinations of valid gears', function() {
 			const result = calculate('gi', {
-				tireSize: '24.87',
+				tireSize: '26-24.87',
 				chainrings: ['52', '42', 'bogus', ''],
 				cogs: ['32', '28', '14', 'bogus', '']
 			})
@@ -21,7 +21,7 @@ describe('calculate', function() {
 
 		it('handles gaps in the lists of valid cogs', function() {
 			const result = calculate('gi', {
-				tireSize: '24.87',
+				tireSize: '26-24.87',
 				chainrings: ['52'],
 				cogs: ['32', '', '14',]
 			})
@@ -37,7 +37,7 @@ describe('calculate', function() {
 
 		it('handles gaps in the lists of valid chainrings', function() {
 			const result = calculate('gi', {
-				tireSize: '24.87',
+				tireSize: '26-24.87',
 				chainrings: ['52', '', '42'],
 				cogs: ['14']
 			});
@@ -53,7 +53,7 @@ describe('calculate', function() {
 
 	it('returns null when no chainrings are valid', function() {
 		const result = calculate('gi', {
-			tireSize: '24.87',
+			tireSize: '26-24.87',
 			chainrings: ['NaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaNNaN', 'nope', ''],
 			cogs: ['32', '28', '14']
 		});
@@ -62,7 +62,7 @@ describe('calculate', function() {
 
 	it('returns null when no cogs are valid', function() {
 		const result = calculate('gi', {
-			tireSize: '24.87',
+			tireSize: '26-24.87',
 			chainrings: ['42'],
 			cogs: ['nope', 'wrong', '']
 		});
@@ -91,7 +91,7 @@ describe('calculate', function() {
 		for (const {id, label, expected} of scenarios) {
 			it(`handles ${label}`, function() {
 				const result = calculate(id, {
-					tireSize: '24.87',
+					tireSize: '26-24.87',
 					chainrings: ['52'],
 					cogs: ['14']
 				});

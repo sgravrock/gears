@@ -1,5 +1,5 @@
 const config = {
-	defaultTireSize: 24.87,
+	defaultTireSize: "26-24.87",
 	maxNumChainrings: 3,
 	maxNumCogs: 13,
 	units: [
@@ -7,9 +7,12 @@ const config = {
 		{label: 'MPH @ 60 RPM', id: 'mph60'},
 		{label: 'MPH @ 90 RPM', id: 'mph90'},
 	],
+	// See additional tire size processing at the end of this file
+	tireSizesById: {},
 	tireGroups: [
 		{
 			label: "29\" / fat 700c",
+			id: "29",
 			options: [
 				{
 					label: "29 x 3.0\" / 75-622",
@@ -46,6 +49,7 @@ const config = {
 		},
 		{
 			label: "700c",
+			id: "700c",
 			options: [
 				{
 					label: "700c X 44mm / 44-622 / 29 x 1.75",
@@ -61,7 +65,7 @@ const config = {
 				},
 				{
 					label: "700c X 32mm / 32-622",
-					diameterIn: "27"
+					diameterIn: "27",
 				},
 				{
 					label: "700c X 25mm / 25-622",
@@ -79,6 +83,7 @@ const config = {
 		},
 		{
 			label: "650b / 27.5\"",
+			id: "650b",
 			options: [
 				{
 					label: "650b x 3.0\" / 76-584",
@@ -104,6 +109,7 @@ const config = {
 		},
 		{
 			label: "26\"",
+			id: "26",
 			options: [
 				{
 					label: "26 inch (nominal)",
@@ -141,6 +147,7 @@ const config = {
 		},
 		{
 			label: "Fat bikes",
+			id: "fat",
 			options: [
 				{
 					label: "26 x 4.7\" / 119-559 fatbike at 10 PSI",
@@ -162,6 +169,7 @@ const config = {
 		},
 		{
 			label: "Small wheels",
+			id: "sm",
 			options: [
 				{
 					label: "24 inch (nominal)",
@@ -223,6 +231,7 @@ const config = {
 		},
 		{
 			label: "Obscure/niche/obsolete/silly sizes",
+			id: "obs",
 			options: [
 				{
 					label: "36 x 2.25\" / 57-787",
@@ -249,10 +258,6 @@ const config = {
 					diameterIn: "26.38"
 				},
 				{
-					label: "27 inch (nominal)",
-					diameterIn: "27"
-				},
-				{
 					label: "27 X 1 3/8\" / 35-630",
 					diameterIn: "27.18"
 				},
@@ -262,7 +267,7 @@ const config = {
 				},
 				{
 					label: "27 X 1 1/8\" / 28-630",
-					diameterIn: "27"
+					diameterIn: "27",
 				},
 				{
 					label: "27 X 1\" / 25-630",
@@ -897,5 +902,17 @@ const config = {
 		}
 	]
 };
+
+// The list of tire sizes includes some duplicates, and unlike with cassettes
+// it doesn't make sense to combine them. E.g. 700c X 32mm and 27 X 1 1/8" are
+// different tires that belong in different groups even though they have the
+// same outside diameter. To support that, we build unique IDs by prefixing the
+// diameter with a group ID.
+for (const g of config.tireGroups) {
+	for (const t of g.options) {
+		t.id = `${g.id}-${t.diameterIn}`;
+		config.tireSizesById[t.id] = t;
+	}
+}
 
 export default config;

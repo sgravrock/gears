@@ -51,7 +51,7 @@ describe('MultiBikeForm', function() {
 			render(html`<${TestFormStateContainer}/>`, root);
 
 			expect(root.querySelector('[name="tireSize0"]').value)
-				.toEqual('24.87');
+				.toEqual('26-24.87');
 		});
 
 		it('does not initially display a result', function() {
@@ -171,6 +171,23 @@ describe('MultiBikeForm', function() {
 					'31.1', // 24.87 * 30 / 24,
 				]);
 		})
+
+		it('supports duplicate tire sizes', function() {
+			const root = document.createElement('div');
+			render(html`<${TestFormStateContainer}/>`, root);
+
+			// These have the same diameter
+			const options = [
+				'700c X 32mm / 32-622',
+				'27 X 1 1/8\" / 28-630',
+			];
+			const dropdown = () => root.querySelector('[name="tireSize0"]');
+
+			for (const opt of options) {
+				selectOption(dropdown(), opt);
+				expect(dropdown().selectedOptions[0].textContent).toEqual(opt);
+			}
+		});
 	});
 
 	function TestFormStateContainer() {

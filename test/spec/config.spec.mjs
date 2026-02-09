@@ -1,9 +1,8 @@
 import config from '../../config.mjs';
 
 describe('Config', function() {
-	// TODO: fix duplicates and enable this
-	xdescribe('tireGroups', function () {
-		hasNoDuplicates(config.tireGroups, 'diameterIn');
+	describe('tireGroups', function () {
+		hasNoDuplicates(config.tireGroups, 'id');
 	});
 
 	describe('cassetteGroups', function() {
