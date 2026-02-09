@@ -168,6 +168,28 @@ const config = {
 			]
 		},
 		{
+			label: "27\"",
+			id: "27",
+			options: [
+				{
+					label: "27 X 1 3/8\" / 35-630",
+					diameterIn: "27.18"
+				},
+				{
+					label: "27 X 1 1/4\" / 32-630",
+					diameterIn: "27.08"
+				},
+				{
+					label: "27 X 1 1/8\" / 28-630",
+					diameterIn: "27",
+				},
+				{
+					label: "27 X 1\" / 25-630",
+					diameterIn: "26.88"
+				}
+			]
+		},
+		{
 			label: "Small wheels",
 			id: "sm",
 			options: [
@@ -256,22 +278,6 @@ const config = {
 				{
 					label: "Tubular / Narrow",
 					diameterIn: "26.38"
-				},
-				{
-					label: "27 X 1 3/8\" / 35-630",
-					diameterIn: "27.18"
-				},
-				{
-					label: "27 X 1 1/4\" / 32-630",
-					diameterIn: "27.08"
-				},
-				{
-					label: "27 X 1 1/8\" / 28-630",
-					diameterIn: "27",
-				},
-				{
-					label: "27 X 1\" / 25-630",
-					diameterIn: "26.88"
 				},
 				{
 					label: "650c x 28mm / 28-571 / 26\" road/tri",
