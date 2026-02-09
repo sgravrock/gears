@@ -21,7 +21,10 @@ const config = {
 				},
 				{
 					label: "29 x 2.3\" / 60-622",
-					diameterIn: "28.94"
+					// Diameter for this wheel size in the source data is much
+					// too small. 29.2" is derived from
+					// <https://cateye.com/data/resources/Tire_size_chart_ENG.pdf>.
+					diameterIn: "29.2"
 				},
 				{
 					label: "29 x 2.2\" / 700c X 56mm / 56-622",
