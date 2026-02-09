@@ -1,7 +1,9 @@
 import {Fragment} from 'preact';
 import {html} from 'htm/preact';
 import {useId, useState} from 'preact/hooks';
+
 import config from './config.mjs';
+const customCassetteValue = 'custom';
 
 export function newBike(id) {
 	return {
@@ -209,6 +211,25 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 
 	const tireSizeId = useId();
 
+	// Select the option from the cassette dropdown that matches the current
+	// cogs, or custom if there is no match. This keeps the dropdown and the
+	// cog fields in sync. It requires that no two dropdown entries provide the
+	// same cogs.
+	let selectedCassette = cogsToCassette(bike.cogs)
+	if (!cassetteExists(selectedCassette)) {
+		selectedCassette = customCassetteValue;
+	}
+
+	function selectCassette(value) {
+		const cogs = value.split('-');
+
+		while (cogs.length < config.maxNumCogs) {
+			cogs.push('');
+		}
+
+		setBike({...bike, cogs});
+	}
+
 	return html`
 		<tr>
 			<td>
@@ -241,16 +262,26 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 						</td>
 					</tr>
 					<tr>
-						<td>Cogs</td>
+						<td>Cassette / Freewheel</td>
 						<td>
-							${bike.cogs.map((cog, i) => html`
-								<input
-									name="cog${bike.id}.${i}"
-									value=${cog}
-									onchange=${e => setCog(e.target.value, i)}
-									size="2"
-								/>
-							`)}
+							<${Select}
+								name="cassette${bike.id}"
+								options=${[{label: 'Custom', value: customCassetteValue}]}
+								optionGroups=${config.cassetteGroups}
+								optionKey="value"
+								selectedKey=${selectedCassette}
+								onchange=${selectCassette}
+							/>
+							<div class="custom-cogs">
+								${bike.cogs.map((cog, i) => html`
+									<input
+										name="cog${bike.id}.${i}"
+										value=${cog}
+										onchange=${e => setCog(e.target.value, i)}
+										size="2"
+									/>
+								`)}
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -261,6 +292,22 @@ export function BikeForm({bike, setBike, unit, remove, canRemove}) {
 			</td>
 		</tr>
 	`;
+}
+
+function cogsToCassette(cogs) {
+	return cogs.filter(c => c).join('-');
+}
+
+function cassetteExists(value) {
+	for (const group of config.cassetteGroups) {
+		for (const opt of group.options) {
+			if (opt.value === value) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 export function calculate(unit, bike) {
@@ -331,42 +378,36 @@ function ResultTable({result}) {
 		</table>`;
 }
 
-// Exactly one of options and optionGroups should be passed
+// At least one of options and optionGroups should be passed
 export function Select({id, name, options, optionGroups,
 						optionKey, selectedKey, onchange}) {
-	let children;
-
-	if (optionGroups) {
-		console.log('using option groups:', optionGroups);
-		// Option group labels come from static data so they make suitable keys
-		children = optionGroups.map((g) => html`
-			<optgroup key=${g.label} label=${g.label}>
-				<${SelectOptions}
-					options=${g.options}
-					optionKey=${optionKey}
-					selectedKey=${selectedKey}
-				/>
-			</optgroup>
-		`);
-		console.log('ok');
-	} else {
-		console.log('using options:', options);
-		children = html`
-			<${SelectOptions}
-				options=${options}
-				optionKey=${optionKey} 
-				selectedKey=${selectedKey}
-			/>`
-		console.log('ok');
-	}
-
 	return html`
 		<select
 			id=${id}
 			name=${name}
 			onchange=${e => onchange(e.target.value)}
+			onchange=${e => onchange(e.target.value)}
 		>
-			${children}
+			${options && html`
+				<${SelectOptions}
+					options=${options}
+					optionKey=${optionKey}
+					selectedKey=${selectedKey}
+				/>`
+			}
+			${optionGroups && optionGroups.map((g) => {
+				// Option group labels come from static data,
+				// so they make suitable keys
+				return html`
+					<optgroup key=${g.label} label=${g.label}>
+						<${SelectOptions}
+							options=${g.options}
+							optionKey=${optionKey}
+							selectedKey=${selectedKey}
+						/>
+					</optgroup>
+				`;
+			})}
 		</select>`;
 }
 

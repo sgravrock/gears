@@ -112,6 +112,33 @@ describe('MultiBikeForm', function() {
 				.toEqual(['80.3']); // 24.87 * 42 / 13
 		});
 
+		it('keeps the cassette dropdown and cog fields in sync', function() {
+			const root = document.createElement('div');
+			render(html`<${TestFormStateContainer}/>`, root);
+			const cogField = i => root.querySelector(`[name="cog0.${i}"]`);
+			const cassetteDropdown = () => root.querySelector('[name=cassette0]');
+
+			selectOption(cassetteDropdown(), 'Shimano L 12-13-14-15-17-19-21');
+			const expectedCogs = ['12', '13', '14', '15', '17', '19', '21',
+				'', '', '', '', '', ''];
+			for (let i = 0; i < 13; i++) {
+				expect(cogField(i).value)
+					.withContext(`cog ${i} after first cassette selection`)
+					.toEqual(expectedCogs[i]);
+			}
+
+			changeField(cogField(0), '11');
+			expect(cassetteDropdown().value).toEqual('custom');
+
+			changeField(cogField(7), '36');
+			selectOption(cassetteDropdown(), 'Shimano L 12-13-14-15-17-19-21');
+			for (let i = 0; i < 13; i++) {
+				expect(cogField(i).value)
+					.withContext(`cog ${i} after second cassette selection`)
+					.toEqual(expectedCogs[i]);
+			}
+		});
+
 		it('supports multiple chainrings', function() {
 			const root = document.createElement('div');
 			render(html`<${TestFormStateContainer}/>`, root);
