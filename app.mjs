@@ -86,7 +86,7 @@ function bikesFromQueryParams(urlSearchParams) {
 		}
 
 		if (m[1] === 'ts') {
-			byId[bikeId].tireSize = nv;
+			byId[bikeId].tireSize = v;
 		} else if (m[1] === 'cr') {
 			byId[bikeId].chainrings[fieldIx] = nv;
 		} else {
