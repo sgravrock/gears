@@ -13,7 +13,16 @@ With your web server running, access test/SpecRunner.html in your browser.
 
 ## Deployment
 
-Copy index.html, app.mjs, config.js, app.css, and the vendor directory to your server.
+Copy index.html, app.mjs, config.mjs, app.css, and the vendor directory to your server.
+
+If the server you're deploing to isn't already configured to serve .mjs files 
+with the application/javascript MIME type, you'll need to do that. For Apache,
+create a .htaccess file in the same directory as index.html with the following
+contents, and make it world-readable:
+
+```
+AddType application/javascript .mjs
+```
 
 ## Updating dependencies
 
